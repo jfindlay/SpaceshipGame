@@ -145,7 +145,7 @@ class DetectAndResolveAllCollisions:
             current_max_distance_intersecting = -1
 
             colliding_pairs = []
-        
+
             potentially_colliding_pairs = collision_detection_grid_method()
 
             if not potentially_colliding_pairs:
