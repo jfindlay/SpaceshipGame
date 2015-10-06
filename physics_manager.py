@@ -133,10 +133,67 @@ class DetectAndResolveAllCollisions:
             return potentially_colliding_pairs
 
         def distance_pair_intersecting(space_object0, space_object1):
-            pass
+            distance_intersecting = 0
+            if space_object0.radius != 0 or space_object1.radius != 0:
+                vector_between_centers = space_object0.position - space_object1.position
+                distance_between_centers = numpy.linalg.norm(vector_between_centers)
+                if distance_between_centers <= space_object0.radius + space_object1.radius:
+                    distance_intersecting = (space_object0.radius + space_object1.radius) - distance_between_centers
+
+            return distance_intersecting
 
         def move_colliding_pair_back(space_object0, space_object1):
-            pass
+            # Uses the quadratic formula to find the amount of time needed to move the objects back
+            # so they are just barely touching, aka
+            # radius + radius = magnitude(difference in positions + difference in velocity * time)
+            # and we are solving for time.
+
+            vector_between_centers = space_object0.position - space_object1.position
+            vector_velocity_difference = space_object0.velocity - space_object1.velocity
+
+            a = numpy.dot(numpy.transpose(vector_velocity_difference), vector_velocity_difference)
+            b = 2. * numpy.dot(numpy.transpose(vector_between_centers), vector_velocity_difference)
+            # Mathematically, it could be "+ (space_object1.radius + space_object2.radius)" instead of "-",
+            # but the "+" will lead to the time being a complex number.
+            c = numpy.dot(numpy.transpose(vector_between_centers), vector_between_centers) - (space_object0.radius + space_object1.radius)**2
+
+            # The quadratic formula has a "+ or -" in it, but we always want a negative time, so we use the "-".
+            time = (-1.*b - (b**2. - 4.*a*c)**(1./2.))/(2.*a)
+
+            space_object0.position = space_object0.position + (time * space_object0.velocity)
+            space_object1.position = space_object1.position + (time * space_object1.velocity)
+            update_all_maxes_and_mins(pair)
+
+        def apply_impulse(space_object0, space_object1):
+
+            contact_normal_not_unit = space_object0.position - space_object1.position
+            contact_normal = contact_normal_not_unit / numpy.linalg.norm(contact_normal_not_unit)
+            object0_relative_velocity = numpy.dot(numpy.transpose(space_object0.velocity), contact_normal) * contact_normal
+            object1_relative_velocity = numpy.dot(numpy.transpose(space_object1.velocity), contact_normal) * contact_normal
+
+            vector_velocity_difference = object0_relative_velocity - object1_relative_velocity
+
+
+
+            if
+
+            elif space_object0.is_movable and space_object1.is_movable:
+
+
+                impulse = (1 + e) * vector_velocity_difference * ((space_object0.mass * space_object1.mass) / (space_object0.mass + space_object1.mass))
+
+                space_object0.velocity -= impulse/space_object0.mass
+                space_object1.velocity += impulse/space_object1.mass
+
+            elif space_object0.is_movable:
+                velocity_component_of_normal = contact_normal * numpy.dot(numpy.transpose(space_object0.velocity), contact_normal)
+                computed_velocity_before_e = -2*velocity_component_of_normal + space_object0.velocity
+                space_object0.velocity = e * computed_velocity_before_e
+
+            elif space_object1.is_movable:
+                velocity_component_of_normal = contact_normal * numpy.dot(numpy.transpose(space_object1.velocity), contact_normal)
+                computed_velocity_before_e = 2*velocity_component_of_normal + space_object0.velocity
+                space_object1.velocity = e * computed_velocity_before_e
 
         current_max_distance_intersecting = 1
 
