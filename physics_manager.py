@@ -33,7 +33,7 @@ class SpaceObject:
         if has_gravitational_pull:
             gravity_sources.append(self)
 
-        collision_detector_and_resolver.add_to_max_and_min_lists(self)
+        collision_detector_and_resolver.add_object_to_max_and_min_lists(self)
 
     def move(self):
         acceleration = self.sum_of_forces / self.mass
@@ -43,8 +43,18 @@ class SpaceObject:
 
 
 def calculate_all_gravitational_forces():
-    def calculate_gravitational_force():
-        pass
+    def calculate_gravitational_force(space_object1, space_object2):
+        distance_vector = space_object1.position - space_object2.position
+        distance_direction = distance_vector / numpy.linalg.norm(distance_vector)
+        distance_magnitude_squared = numpy.dot(numpy.transpose(distance_vector), distance_vector)
+        mass_times_mass = space_object1.mass * space_object2.mass
+        force = (mass_times_mass / distance_magnitude_squared) * distance_direction
+        return force
+
+    for gravity_source in gravity_sources:
+        for space_object in objects_effected_by_collisions:
+            force = calculate_gravitational_force(gravity_source, space_object)
+            space_object.sum_of_forces = force + space_object.sum_of_forces
 
 
 def move_all_movable_objects():
@@ -173,12 +183,10 @@ class DetectAndResolveAllCollisions:
 
             vector_velocity_difference = object0_relative_velocity - object1_relative_velocity
 
-
-
-            if
+            if numpy.dot(numpy.transpose(vector_velocity_difference), contact_normal) <= 0:
+                pass
 
             elif space_object0.is_movable and space_object1.is_movable:
-
 
                 impulse = (1 + e) * vector_velocity_difference * ((space_object0.mass * space_object1.mass) / (space_object0.mass + space_object1.mass))
 
@@ -222,12 +230,10 @@ class DetectAndResolveAllCollisions:
                 elif distance_intersecting >= -.01:
                     colliding_pairs.append((space_object0, space_object1))
 
-
-
-
-
-
-
+        for pair in colliding_pairs:
+            space_object0 = colliding_pairs[0]
+            space_object1 = colliding_pairs[1]
+            apply_impulse(space_object0, space_object1)
 
 
 collision_detector_and_resolver = DetectAndResolveAllCollisions()
