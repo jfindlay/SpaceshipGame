@@ -91,7 +91,7 @@ class DetectAndResolveAllCollisions:
                     object_to_compare_against = object_number_pair[0]
 
                     if space_object == object_to_compare_against:
-                        if updating_max == True:
+                        if updating_max:
                             # The additional .01 is so the collision detector will pick up objects that are just barely touching.
                             object_number_pair[1] = space_object.position[dimension_index] + space_object.radius + .005
                             updating_max = False
@@ -183,24 +183,22 @@ class DetectAndResolveAllCollisions:
 
             vector_velocity_difference = object0_relative_velocity - object1_relative_velocity
 
-            if numpy.dot(numpy.transpose(vector_velocity_difference), contact_normal) <= 0:
+            if numpy.dot(numpy.transpose(vector_velocity_difference), contact_normal) >= 0:
                 pass
 
-            elif space_object0.is_movable and space_object1.is_movable:
+            elif space_object0.effected_by_collisions and space_object1.effected_by_collisions:
 
                 impulse = (1 + e) * vector_velocity_difference * ((space_object0.mass * space_object1.mass) / (space_object0.mass + space_object1.mass))
 
                 space_object0.velocity -= impulse/space_object0.mass
                 space_object1.velocity += impulse/space_object1.mass
 
-            elif space_object0.is_movable:
-                velocity_component_of_normal = contact_normal * numpy.dot(numpy.transpose(space_object0.velocity), contact_normal)
-                computed_velocity_before_e = -2*velocity_component_of_normal + space_object0.velocity
+            elif space_object0.effected_by_collisions:
+                computed_velocity_before_e = -2*object0_relative_velocity + space_object0.velocity
                 space_object0.velocity = e * computed_velocity_before_e
 
-            elif space_object1.is_movable:
-                velocity_component_of_normal = contact_normal * numpy.dot(numpy.transpose(space_object1.velocity), contact_normal)
-                computed_velocity_before_e = 2*velocity_component_of_normal + space_object0.velocity
+            elif space_object1.effected_by_collisions:
+                computed_velocity_before_e = 2*object1_relative_velocity + space_object0.velocity
                 space_object1.velocity = e * computed_velocity_before_e
 
         current_max_distance_intersecting = 1
@@ -230,10 +228,11 @@ class DetectAndResolveAllCollisions:
                 elif distance_intersecting >= -.01:
                     colliding_pairs.append((space_object0, space_object1))
 
-        for pair in colliding_pairs:
-            space_object0 = colliding_pairs[0]
-            space_object1 = colliding_pairs[1]
-            apply_impulse(space_object0, space_object1)
+            # How to handle applying impulses when multiple objects are involved?
+            for pair in colliding_pairs:
+                space_object0 = colliding_pairs[0]
+                space_object1 = colliding_pairs[1]
+                apply_impulse(space_object0, space_object1)
 
 
 collision_detector_and_resolver = DetectAndResolveAllCollisions()
