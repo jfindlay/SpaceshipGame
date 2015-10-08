@@ -9,8 +9,8 @@ dt = 1/30.
 e = .7
 
 
-objects_effected_by_collisions = []
-objects_NOT_effected_by_collisions = []
+objects_effected_by_collision = []
+objects_NOT_effected_by_collision = []
 gravity_sources = []
 
 
@@ -27,9 +27,9 @@ class SpaceObject:
         self.has_gravitational_pull = has_gravitational_pull
 
         if effected_by_collision:
-            objects_effected_by_collisions.append(self)
+            objects_effected_by_collision.append(self)
         else:
-            objects_NOT_effected_by_collisions.append(self)
+            objects_NOT_effected_by_collision.append(self)
         if has_gravitational_pull:
             gravity_sources.append(self)
 
@@ -52,14 +52,14 @@ def calculate_all_gravitational_forces():
         return force
 
     for gravity_source in gravity_sources:
-        for space_object in objects_effected_by_collisions:
+        for space_object in objects_effected_by_collision:
             force = calculate_gravitational_force(gravity_source, space_object)
             space_object.sum_of_forces = force + space_object.sum_of_forces
 
 
 def move_all_movable_objects():
 
-    for space_object in (objects_effected_by_collisions + objects_NOT_effected_by_collisions):
+    for space_object in (objects_effected_by_collision + objects_NOT_effected_by_collision):
         space_object.move()
 
 
@@ -80,7 +80,7 @@ class DetectAndResolveAllCollisions:
 
     def detect_and_resolve_all_collisions(self):
 
-        def update_all_maxes_and_mins(objects_to_be_updated=objects_effected_by_collisions+objects_NOT_effected_by_collisions):
+        def update_all_maxes_and_mins(objects_to_be_updated=objects_effected_by_collision+objects_NOT_effected_by_collision):
 
             def update_object_in_dimension(dimension_index, space_object):
                 dimension = self.maxes_and_mins_along_dimensions[dimension_index]
@@ -189,18 +189,18 @@ class DetectAndResolveAllCollisions:
             if numpy.dot(numpy.transpose(vector_velocity_difference), contact_normal) >= 0:
                 pass
 
-            elif space_object0.effected_by_collisions and space_object1.effected_by_collisions:
+            elif space_object0.effected_by_collision and space_object1.effected_by_collision:
 
                 impulse = (1 + e) * vector_velocity_difference * ((space_object0.mass * space_object1.mass) / (space_object0.mass + space_object1.mass))
 
                 space_object0.velocity -= impulse/space_object0.mass
                 space_object1.velocity += impulse/space_object1.mass
 
-            elif space_object0.effected_by_collisions:
+            elif space_object0.effected_by_collision:
                 computed_velocity_before_e = -2*object0_relative_velocity + space_object0.velocity
                 space_object0.velocity = e * computed_velocity_before_e
 
-            elif space_object1.effected_by_collisions:
+            elif space_object1.effected_by_collision:
                 computed_velocity_before_e = 2*object1_relative_velocity + space_object0.velocity
                 space_object1.velocity = e * computed_velocity_before_e
 
@@ -210,6 +210,7 @@ class DetectAndResolveAllCollisions:
 
             current_max_distance_intersecting = -1
 
+            update_all_maxes_and_mins()
             potentially_colliding_pairs = collision_detection_grid_method()
             colliding_pairs = []
 
@@ -217,8 +218,7 @@ class DetectAndResolveAllCollisions:
                 break
 
             for pair in potentially_colliding_pairs:
-                space_object0 = pair[0]
-                space_object1 = pair[1]
+                space_object0, space_object1  = pair
 
                 distance_intersecting = distance_pair_intersecting(space_object0, space_object1)
 
@@ -232,8 +232,7 @@ class DetectAndResolveAllCollisions:
 
             ##### How to handle applying impulses when multiple objects are involved?
             for pair in colliding_pairs:
-                space_object0 = colliding_pairs[0]
-                space_object1 = colliding_pairs[1]
+                space_object0, space_object1 = pair
                 apply_impulse(space_object0, space_object1)
 
 

@@ -42,6 +42,8 @@ object8 = physics_manager.SpaceObject(position = numpy.array([[-80.], [5.], [-2.
                                      radius = 5., mass = 5.)
 object9 = physics_manager.SpaceObject(position = numpy.array([[-60.], [6.], [0.]]), velocity = numpy.array([[10.], [0.], [0.]]),
                                      radius = 5., mass = 5.)
+object10 = physics_manager.SpaceObject(position = numpy.array([[100.], [0.], [0.]]), velocity = numpy.array([[-10.], [0.], [0.]]),
+                                     radius = 5., mass = 5.)
 
 
 create_sphere_visual(object1, color.white)
@@ -53,6 +55,7 @@ create_sphere_visual(object6, color.green)
 create_sphere_visual(object7, color.green)
 create_sphere_visual(object8, color.green)
 create_sphere_visual(object9, color.green)
+create_sphere_visual(object10, color.orange)
 
 
 
