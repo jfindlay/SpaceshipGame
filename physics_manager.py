@@ -16,17 +16,17 @@ gravity_sources = []
 
 class SpaceObject:
     def __init__(self, position, velocity, radius=0., mass=1.,
-                 effected_by_collisions=True, has_gravitational_pull=False):
+                 effected_by_collision=True, has_gravitational_pull=False):
 
         self.position = position
         self.velocity = velocity
         self.sum_of_forces = numpy.array([[0.], [0.], [0.]])
         self.radius = numpy.abs(radius)
         self.mass = mass
-        self.effected_by_collision = effected_by_collisions
+        self.effected_by_collision = effected_by_collision
         self.has_gravitational_pull = has_gravitational_pull
 
-        if effected_by_collisions:
+        if effected_by_collision:
             objects_effected_by_collisions.append(self)
         else:
             objects_NOT_effected_by_collisions.append(self)
