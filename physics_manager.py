@@ -103,6 +103,7 @@ class DetectAndResolveAllCollisions:
                 for space_object in objects_to_be_updated:
                     update_object_in_dimension(dimension_index, space_object)
 
+                # Sorts the dimension based on the max and min values.
                 self.maxes_and_mins_along_dimensions[dimension_index].sort(key=itemgetter(1))
 
         def collision_detection_grid_method():
@@ -149,6 +150,8 @@ class DetectAndResolveAllCollisions:
                 distance_between_centers = numpy.linalg.norm(vector_between_centers)
                 if distance_between_centers <= space_object0.radius + space_object1.radius:
                     distance_intersecting = (space_object0.radius + space_object1.radius) - distance_between_centers
+            else:
+                distance_intersecting = -1
 
             return distance_intersecting
 
@@ -207,9 +210,8 @@ class DetectAndResolveAllCollisions:
 
             current_max_distance_intersecting = -1
 
-            colliding_pairs = []
-
             potentially_colliding_pairs = collision_detection_grid_method()
+            colliding_pairs = []
 
             if not potentially_colliding_pairs:
                 break
@@ -228,7 +230,7 @@ class DetectAndResolveAllCollisions:
                 elif distance_intersecting >= -.01:
                     colliding_pairs.append((space_object0, space_object1))
 
-            # How to handle applying impulses when multiple objects are involved?
+            ##### How to handle applying impulses when multiple objects are involved?
             for pair in colliding_pairs:
                 space_object0 = colliding_pairs[0]
                 space_object1 = colliding_pairs[1]
