@@ -211,18 +211,18 @@ class DetectAndResolveAllCollisions:
             if numpy.dot(numpy.transpose(vector_velocity_difference), contact_normal) >= 0:
                 pass
 
-            elif space_object0.effected_by_collision and space_object1.effected_by_collision:
+            elif space_object0.is_movable and space_object1.is_movable:
 
                 impulse = (1 + e) * vector_velocity_difference * ((space_object0.mass * space_object1.mass) / (space_object0.mass + space_object1.mass))
 
                 space_object0.velocity -= impulse/space_object0.mass
                 space_object1.velocity += impulse/space_object1.mass
 
-            elif space_object0.effected_by_collision:
+            elif space_object0.is_movable:
                 computed_velocity_before_e = -2*object0_relative_velocity + space_object0.velocity
                 space_object0.velocity = e * computed_velocity_before_e
 
-            elif space_object1.effected_by_collision:
+            elif space_object1.is_movable:
                 computed_velocity_before_e = 2*object1_relative_velocity + space_object0.velocity
                 space_object1.velocity = e * computed_velocity_before_e
 
