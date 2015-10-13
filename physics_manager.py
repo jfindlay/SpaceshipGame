@@ -8,30 +8,37 @@ __author__ = 'Jacob'
 dt = 1/30.
 e = .7
 
-
-objects_effected_by_collision = []
-objects_NOT_effected_by_collision = []
+all_objects = []
+movable_objects = []
+objects_effected_by_gravity =[]
 gravity_sources = []
 
 
 class SpaceObject:
     def __init__(self, position, velocity, radius=0., mass=1.,
-                 effected_by_collision=True, has_gravitational_pull=False):
+                 is_movable=True, is_effected_by_gravity=True, is_gravity_source=False):
 
         self.position = position
         self.velocity = velocity
         self.sum_of_forces = numpy.array([[0.], [0.], [0.]])
         self.radius = numpy.abs(radius)
         self.mass = mass
-        self.effected_by_collision = effected_by_collision
-        self.has_gravitational_pull = has_gravitational_pull
+        self.is_movable = is_movable
+        self.is_effected_by_gravity = is_effected_by_gravity
+        self.is_gravity_source = is_gravity_source
 
-        if effected_by_collision:
-            objects_effected_by_collision.append(self)
-        else:
-            objects_NOT_effected_by_collision.append(self)
-        if has_gravitational_pull:
+        all_objects.append(self)
+
+        if is_gravity_source:
+            self.is_movable = False
+            self.is_effected_by_gravity = False
             gravity_sources.append(self)
+
+        if is_effected_by_gravity:
+            objects_effected_by_gravity.append(self)
+
+        if is_movable:
+            movable_objects.append(self)
 
         collision_detector_and_resolver.add_object_to_max_and_min_lists(self)
 
@@ -52,14 +59,14 @@ def calculate_all_gravitational_forces():
         return force
 
     for gravity_source in gravity_sources:
-        for space_object in objects_effected_by_collision:
+        for space_object in objects_effected_by_gravity:
             force = calculate_gravitational_force(gravity_source, space_object)
             space_object.sum_of_forces = force + space_object.sum_of_forces
 
 
 def move_all_movable_objects():
 
-    for space_object in (objects_effected_by_collision + objects_NOT_effected_by_collision):
+    for space_object in (movable_objects):
         space_object.move()
 
 
@@ -80,7 +87,9 @@ class DetectAndResolveAllCollisions:
 
     def detect_and_resolve_all_collisions(self):
 
-        def update_all_maxes_and_mins(objects_to_be_updated=objects_effected_by_collision+objects_NOT_effected_by_collision):
+        # Updates for all objects, included "non-movable" ones, because non-movable objects can be moved by things
+        # other than the physics engine.
+        def update_all_maxes_and_mins(objects_to_be_updated=all_objects):
 
             def update_object_in_dimension(dimension_index, space_object):
                 dimension = self.maxes_and_mins_along_dimensions[dimension_index]
@@ -161,8 +170,21 @@ class DetectAndResolveAllCollisions:
             # radius + radius = magnitude(difference in positions + difference in velocity * time)
             # and we are solving for time.
 
+            space_object0_velocity = space_object0.velocity
+            space_object1_velocity = space_object1.velocity
+
+            if space_object0.is_movable == True and space_object1.is_movable == False:
+                space_object0_velocity = numpy.array([[0.], [0.], [0.]])
+                if space_object1.velocity == numpy.array([[0.], [0.], [0.]]):
+                    space_object1_velocity = numpy.array([[1.0], [1.0], [1.0]])
+
+            if space_object0.is_movable == False and space_object1.is_movable == True:
+                space_object1_velocity = numpy.array([[0.], [0.], [0.]])
+                if space_object0.velocity == numpy.array([[0.], [0.], [0.]]):
+                    space_object0_velocity = numpy.array([[1.0], [1.0], [1.0]])
+
             vector_between_centers = space_object0.position - space_object1.position
-            vector_velocity_difference = space_object0.velocity - space_object1.velocity
+            vector_velocity_difference = space_object0_velocity - space_object1_velocity
 
             a = numpy.dot(numpy.transpose(vector_velocity_difference), vector_velocity_difference)
             b = 2. * numpy.dot(numpy.transpose(vector_between_centers), vector_velocity_difference)
@@ -173,8 +195,8 @@ class DetectAndResolveAllCollisions:
             # The quadratic formula has a "+ or -" in it, but we always want a negative time, so we use the "-".
             time = (-1.*b - (b**2. - 4.*a*c)**(1./2.))/(2.*a)
 
-            space_object0.position = space_object0.position + (time * space_object0.velocity)
-            space_object1.position = space_object1.position + (time * space_object1.velocity)
+            space_object0.position = space_object0.position + (time * space_object0_velocity)
+            space_object1.position = space_object1.position + (time * space_object1_velocity)
             update_all_maxes_and_mins(pair)
 
         def apply_impulse(space_object0, space_object1):

@@ -56,6 +56,9 @@ class SpaceObject:
         def calculate_gravitational_force():
             def calculate_gravitational_force_for_one_gravity_source(gravity_source):
                 distance_vector = gravity_source.position - self.position
+                if distance_vector == numpy.array([[0.], [0.], [0.]]):
+                    print("self = %r") % self
+                    print("gravity = %r") % gravity_source
                 mass_times_mass = gravity_source.mass * self.mass
                 distance_magnitude = numpy.linalg.norm(distance_vector)
                 distance_direction = distance_vector / distance_magnitude
