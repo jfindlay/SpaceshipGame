@@ -25,36 +25,36 @@ def create_sphere_visual(space_object, object_color = color.white):
 
 
 object1 = physics_manager.SpaceObject(position = numpy.array([[0.], [0.], [0.]]), velocity = numpy.array([[0.], [0.], [0.]]),
-                                     radius = 5., mass = 10., effected_by_collision = False, has_gravitational_pull = False)
-object2 = physics_manager.SpaceObject(position = numpy.array([[10.], [0.], [0.]]), velocity = numpy.array([[-10.], [0.], [0.]]),
-                                     radius = 1., mass = 1.)
-object3 = physics_manager.SpaceObject(position = numpy.array([[-200.], [0.], [4.]]), velocity = numpy.array([[10.], [0.], [0.]]),
-                                     radius = 5., mass = 5.)
-object4 = physics_manager.SpaceObject(position = numpy.array([[-160.], [1.], [0.]]), velocity = numpy.array([[10.], [0.], [0.]]),
-                                     radius = 5., mass = 5.)
-object5 = physics_manager.SpaceObject(position = numpy.array([[-140.], [2.], [-4.]]), velocity = numpy.array([[10.], [0.], [0.]]),
-                                     radius = 5., mass = 5.)
-object6 = physics_manager.SpaceObject(position = numpy.array([[-120.], [3.], [2.]]), velocity = numpy.array([[10.], [0.], [0.]]),
-                                     radius = 5., mass = 5.)
-object7 = physics_manager.SpaceObject(position = numpy.array([[-100.], [4.], [0.]]), velocity = numpy.array([[10.], [0.], [0.]]),
-                                     radius = 5., mass = 5.)
-object8 = physics_manager.SpaceObject(position = numpy.array([[-80.], [5.], [-2.]]), velocity = numpy.array([[10.], [0.], [0.]]),
-                                     radius = 5., mass = 5.)
-object9 = physics_manager.SpaceObject(position = numpy.array([[-60.], [6.], [0.]]), velocity = numpy.array([[10.], [0.], [0.]]),
-                                     radius = 5., mass = 5.)
+                                     radius = 5., mass = 10., effected_by_collision = False, has_gravitational_pull = True)
+# object2 = physics_manager.SpaceObject(position = numpy.array([[10.], [0.], [0.]]), velocity = numpy.array([[-10.], [0.], [0.]]),
+#                                      radius = 1., mass = 1.)
+# object3 = physics_manager.SpaceObject(position = numpy.array([[-200.], [0.], [4.]]), velocity = numpy.array([[10.], [0.], [0.]]),
+#                                      radius = 5., mass = 5.)
+# object4 = physics_manager.SpaceObject(position = numpy.array([[-160.], [1.], [0.]]), velocity = numpy.array([[10.], [0.], [0.]]),
+#                                      radius = 5., mass = 5.)
+# object5 = physics_manager.SpaceObject(position = numpy.array([[-140.], [2.], [-4.]]), velocity = numpy.array([[10.], [0.], [0.]]),
+#                                      radius = 5., mass = 5.)
+# object6 = physics_manager.SpaceObject(position = numpy.array([[-120.], [3.], [2.]]), velocity = numpy.array([[10.], [0.], [0.]]),
+#                                      radius = 5., mass = 5.)
+# object7 = physics_manager.SpaceObject(position = numpy.array([[-100.], [4.], [0.]]), velocity = numpy.array([[10.], [0.], [0.]]),
+#                                      radius = 5., mass = 5.)
+# object8 = physics_manager.SpaceObject(position = numpy.array([[-80.], [5.], [-2.]]), velocity = numpy.array([[10.], [0.], [0.]]),
+#                                      radius = 5., mass = 5.)
+# object9 = physics_manager.SpaceObject(position = numpy.array([[-60.], [6.], [0.]]), velocity = numpy.array([[10.], [0.], [0.]]),
+#                                      radius = 5., mass = 5.)
 object10 = physics_manager.SpaceObject(position = numpy.array([[100.], [0.], [0.]]), velocity = numpy.array([[-10.], [0.], [0.]]),
                                      radius = 5., mass = 5.)
 
 
 create_sphere_visual(object1, color.white)
-create_sphere_visual(object2, color.green)
-create_sphere_visual(object3, color.green)
-create_sphere_visual(object4, color.green)
-create_sphere_visual(object5, color.green)
-create_sphere_visual(object6, color.green)
-create_sphere_visual(object7, color.green)
-create_sphere_visual(object8, color.green)
-create_sphere_visual(object9, color.green)
+# create_sphere_visual(object2, color.green)
+# create_sphere_visual(object3, color.green)
+# create_sphere_visual(object4, color.green)
+# create_sphere_visual(object5, color.green)
+# create_sphere_visual(object6, color.green)
+# create_sphere_visual(object7, color.green)
+# create_sphere_visual(object8, color.green)
+# create_sphere_visual(object9, color.green)
 create_sphere_visual(object10, color.orange)
 
 
