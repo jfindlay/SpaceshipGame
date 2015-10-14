@@ -22,7 +22,7 @@ objects_and_visual_pairs = []
 for i in range(50):
     position = numpy.random.uniform(-150, 150, (3,1))
     velocity = numpy.random.uniform(-10, 10, (3,1))
-    radius = numpy.random.uniform(0, 5)
+    radius = numpy.random.uniform(1, 5)
     mass = numpy.random.uniform(1, 10)
     new_object = physics_manager.SpaceObject(position, velocity, radius, mass)
     new_visualization = create_sphere_visual(new_object, color.white, radius)
@@ -33,8 +33,8 @@ for i in range(4):
     position = numpy.random.uniform(-150, 150, (3,1))
     velocity = numpy.random.uniform(0, 0, (3,1))
     radius = numpy.random.uniform(5, 10)
-    mass = radius*500.
-    new_object = physics_manager.SpaceObject(position, velocity, radius, mass, False, True)
+    mass = radius*50000.
+    new_object = physics_manager.SpaceObject(position, velocity, radius, mass, gravity_source=True)
     new_visualization = create_sphere_visual(new_object, color.cyan, radius)
     objects_and_visual_pairs.append([new_object, new_visualization])
 
