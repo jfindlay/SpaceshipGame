@@ -25,11 +25,11 @@ def create_sphere_visual(space_object, object_color = color.white):
 
 
 object1 = physics_manager.SpaceObject(position = numpy.array([[0.], [0.], [0.]]), velocity = numpy.array([[0.], [0.], [0.]]),
-                                     radius = 5., mass = 10., effected_by_collision=False, has_gravitational_pull=True)
+                                     radius = 5., mass = 10., gravity_source=True)
 object2 = physics_manager.SpaceObject(position = numpy.array([[10.], [0.], [0.]]), velocity = numpy.array([[-10.], [0.], [0.]]),
                                      radius = 1., mass = 1.)
 object3 = physics_manager.SpaceObject(position = numpy.array([[-200.], [0.], [4.]]), velocity = numpy.array([[10.], [0.], [0.]]),
-                                     radius = 5., mass = 5.)
+                                    radius = 5., mass = 5.)
 object4 = physics_manager.SpaceObject(position = numpy.array([[-160.], [1.], [0.]]), velocity = numpy.array([[10.], [0.], [0.]]),
                                      radius = 5., mass = 5.)
 object5 = physics_manager.SpaceObject(position = numpy.array([[-140.], [2.], [-4.]]), velocity = numpy.array([[10.], [0.], [0.]]),

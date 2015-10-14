@@ -184,7 +184,7 @@ class DetectAndResolveAllCollisions:
 
             space_object0.position = space_object0.position + (time * space_object0.velocity)
             space_object1.position = space_object1.position + (time * space_object1.velocity)
-            update_all_maxes_and_mins(pair)
+            update_all_maxes_and_mins([space_object0, space_object1])
 
         def apply_impulse(space_object0, space_object1):
 
@@ -206,7 +206,7 @@ class DetectAndResolveAllCollisions:
                 space_object1.velocity += impulse/space_object1.mass
 
             elif space_object0.movable:
-                computed_velocity_before_e = 2*object0_relative_velocity + space_object0.velocity
+                computed_velocity_before_e = -2*object0_relative_velocity + space_object0.velocity
                 space_object0.velocity = e * computed_velocity_before_e
 
             elif space_object1.movable:
