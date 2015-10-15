@@ -45,30 +45,18 @@ class SpaceObject:
         collision_detector_and_resolver.add_object_to_max_and_min_lists(self)
 
     def move(self):
-        # Uses Velocity Verlet integration method, repeated more for objects headed away from the gravity source with
-        # the strongest pull on them.
-        number_of_loops = 1
-
+        # Uses Velocity Verlet integration method
         constant_forces = self.sum_of_forces
-        gravitational_force = numpy.array([[0.], [0.], [0.]])
         if self.effected_by_gravity:
-            gravitational_force =  calculate_all_gravitational_forces(self)
-        self.sum_of_forces = constant_forces + gravitational_force
+            self.sum_of_forces =  constant_forces + calculate_all_gravitational_forces(self)
         acceleration = self.sum_of_forces / self.mass
-
-        if numpy.dot(numpy.transpose(self.velocity), gravitational_force) < 0:
-            number_of_loops = 16
-
-        temp_dt = dt/number_of_loops
-
-        for i in range(number_of_loops):
-            self.position = self.position + self.velocity * temp_dt + .5 * acceleration * temp_dt * temp_dt
-            self.velocity = self.velocity + .5 * acceleration * temp_dt
-            if self.effected_by_gravity:
-                self.sum_of_forces =  constant_forces + calculate_all_gravitational_forces(self)
-            acceleration = self.sum_of_forces / self.mass
-            self.velocity = self.velocity + .5 * acceleration * temp_dt
-            self.sum_of_forces = numpy.array([[0.], [0.], [0.]])
+        self.position = self.position + self.velocity * dt + .5 * acceleration * dt * dt
+        self.velocity = self.velocity + .5 * acceleration * dt
+        if self.effected_by_gravity:
+            self.sum_of_forces =  constant_forces + calculate_all_gravitational_forces(self)
+        acceleration = self.sum_of_forces / self.mass
+        self.velocity = self.velocity + .5 * acceleration * dt
+        self.sum_of_forces = numpy.array([[0.], [0.], [0.]])
 
 
 def calculate_all_gravitational_forces(space_object):
