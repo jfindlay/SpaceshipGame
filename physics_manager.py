@@ -170,8 +170,16 @@ class DetectAndResolveAllCollisions:
             # radius + radius = magnitude(difference in positions + difference in velocity * time)
             # and we are solving for time.
 
+            space_object0_velocity = space_object0.velocity
+            space_object1_velocity = space_object1.velocity
+
+            if space_object0.movable and not space_object1.movable:
+                space_object1_velocity = numpy.array([[0.], [0.], [0.]])
+            elif space_object1.movable and not space_object0.movable:
+                space_object0_velocity = numpy.array([[0.], [0.], [0.]])
+
             vector_between_centers = space_object0.position - space_object1.position
-            vector_velocity_difference = space_object0.velocity - space_object1.velocity
+            vector_velocity_difference = space_object0_velocity - space_object1_velocity
 
             a = numpy.dot(numpy.transpose(vector_velocity_difference), vector_velocity_difference)
             b = 2. * numpy.dot(numpy.transpose(vector_between_centers), vector_velocity_difference)
@@ -182,8 +190,8 @@ class DetectAndResolveAllCollisions:
             # The quadratic formula has a "+ or -" in it, but we always want a negative time, so we use the "-".
             time = (-1.*b - (b**2. - 4.*a*c)**(1./2.))/(2.*a)
 
-            space_object0.position = space_object0.position + (time * space_object0.velocity)
-            space_object1.position = space_object1.position + (time * space_object1.velocity)
+            space_object0.position = space_object0.position + (time * space_object0_velocity)
+            space_object1.position = space_object1.position + (time * space_object1_velocity)
             update_all_maxes_and_mins([space_object0, space_object1])
 
         def apply_impulse(space_object0, space_object1):
