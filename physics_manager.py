@@ -5,7 +5,7 @@ import numpy
 __author__ = 'Jacob'
 
 
-dt = 1/60.
+dt = 1/120.
 e = .7
 
 
@@ -45,13 +45,33 @@ class SpaceObject:
         collision_detector_and_resolver.add_object_to_max_and_min_lists(self)
 
     def move(self):
+        # Uses Velocity Verlet integration method, repeated more for objects headed away from the gravity source with
+        # the strongest pull on them.
+        number_of_loops = 1
+
+        constant_forces = self.sum_of_forces
+        gravitational_force = numpy.array([[0.], [0.], [0.]])
+        if self.effected_by_gravity:
+            gravitational_force =  calculate_all_gravitational_forces(self)
+        self.sum_of_forces = constant_forces + gravitational_force
         acceleration = self.sum_of_forces / self.mass
-        self.velocity = acceleration * dt + self.velocity
-        self.position = self.velocity * dt + self.position
-        self.sum_of_forces = numpy.array([[0.], [0.], [0.]])
+
+        if numpy.dot(numpy.transpose(self.velocity), gravitational_force) < 0:
+            number_of_loops = 16
+
+        temp_dt = dt/number_of_loops
+
+        for i in range(number_of_loops):
+            self.position = self.position + self.velocity * temp_dt + .5 * acceleration * temp_dt * temp_dt
+            self.velocity = self.velocity + .5 * acceleration * temp_dt
+            if self.effected_by_gravity:
+                self.sum_of_forces =  constant_forces + calculate_all_gravitational_forces(self)
+            acceleration = self.sum_of_forces / self.mass
+            self.velocity = self.velocity + .5 * acceleration * temp_dt
+            self.sum_of_forces = numpy.array([[0.], [0.], [0.]])
 
 
-def calculate_all_gravitational_forces():
+def calculate_all_gravitational_forces(space_object):
     def calculate_gravitational_force(space_object1, space_object2):
         distance_vector = space_object1.position - space_object2.position
         distance_direction = distance_vector / numpy.linalg.norm(distance_vector)
@@ -61,9 +81,9 @@ def calculate_all_gravitational_forces():
         return force
 
     for gravity_source in gravity_sources:
-        for space_object in objects_effected_by_gravity:
-            force = calculate_gravitational_force(gravity_source, space_object)
-            space_object.sum_of_forces = force + space_object.sum_of_forces
+        force = calculate_gravitational_force(gravity_source, space_object)
+
+    return force
 
 
 def move_all_movable_objects():
@@ -257,6 +277,5 @@ collision_detector_and_resolver = DetectAndResolveAllCollisions()
 
 
 def go_forward_one_time_step():
-    calculate_all_gravitational_forces()
     move_all_movable_objects()
     collision_detector_and_resolver.detect_and_resolve_all_collisions()

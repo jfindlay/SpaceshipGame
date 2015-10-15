@@ -5,7 +5,7 @@ import numpy
 __author__ = 'Jacob'
 
 
-dt = 1/60.
+dt = 1/120.
 e = .7
 
 
@@ -92,6 +92,7 @@ class SpaceObject:
 
         if self.effected_by_gravity:
             starting_energy = calculate_total_energy()
+
             gravitational_velocity = gravitational_acceleration * dt
             self.velocity = gravitational_velocity + self.velocity
             self.position = self.velocity * dt + self.position
