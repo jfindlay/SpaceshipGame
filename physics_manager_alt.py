@@ -11,7 +11,6 @@ e = .7
 
 all_objects = []
 movable_objects = []
-objects_effected_by_gravity = []
 gravity_sources = []
 
 
@@ -37,29 +36,10 @@ class SpaceObject:
 
         if self.movable:
             movable_objects.append(self)
-        
-        if self.effected_by_gravity:
-            objects_effected_by_gravity.append(self)
-            
 
         collision_detector_and_resolver.add_object_to_max_and_min_lists(self)
 
     def move(self):
-        def calculate_gravitational_potential_energy():
-            def calculate_gravitational_potential_energy_for_one_gravity_source(gravity_source):
-                distance_vector = gravity_source.position - self.position
-                mass_times_mass = gravity_source.mass * self.mass
-                distance_magnitude = numpy.linalg.norm(distance_vector)
-
-                gravitational_potential_energy = -1 * mass_times_mass/distance_magnitude
-                return gravitational_potential_energy
-
-            gravitational_potential_energy = 0.
-            for gravity_source in gravity_sources:
-                gravitational_potential_energy += calculate_gravitational_potential_energy_for_one_gravity_source(gravity_source)
-
-            return gravitational_potential_energy
-
         def calculate_gravitational_force():
             def calculate_gravitational_force_for_one_gravity_source(gravity_source):
                 distance_vector = gravity_source.position - self.position
@@ -77,6 +57,21 @@ class SpaceObject:
 
             return gravitational_force
 
+        def calculate_gravitational_potential_energy():
+            def calculate_gravitational_potential_energy_for_one_gravity_source(gravity_source):
+                distance_vector = gravity_source.position - self.position
+                mass_times_mass = gravity_source.mass * self.mass
+                distance_magnitude = numpy.linalg.norm(distance_vector)
+
+                gravitational_potential_energy = -1 * mass_times_mass/distance_magnitude
+                return gravitational_potential_energy
+
+            gravitational_potential_energy = 0.
+            for gravity_source in gravity_sources:
+                gravitational_potential_energy += calculate_gravitational_potential_energy_for_one_gravity_source(gravity_source)
+
+            return gravitational_potential_energy
+
         def calculate_kinetic_energy():
             speed_squared = numpy.dot(numpy.transpose(self.velocity), self.velocity)
             kinetic_energy = .5 * self.mass * speed_squared
@@ -88,21 +83,37 @@ class SpaceObject:
             energy = kinetic_energy - gravitational_potential_energy
             return energy
 
+        if self.effected_by_gravity:
+            gravitational_acceleration = calculate_gravitational_force() / self.mass
+
         acceleration = self.sum_of_forces / self.mass
         self.velocity = acceleration * dt + self.velocity
+        self.sum_of_forces = numpy.array([[0.], [0.], [0.]])
 
         if self.effected_by_gravity:
-            #starting_energy = calculate_total_energy()
-
-            gravitational_acceleration = calculate_gravitational_force() / self.mass
+            starting_energy = calculate_total_energy()
             gravitational_velocity = gravitational_acceleration * dt
             self.velocity = gravitational_velocity + self.velocity
-
             self.position = self.velocity * dt + self.position
 
-            ##
+            ending_energy = calculate_total_energy()
+            energy_difference = starting_energy - ending_energy
+            abs_energy_difference = numpy.abs(energy_difference)
+            print("%r starting_energy: %r") % (self, starting_energy)
+            print("%r ending_energy: %r") % (self, ending_energy)
 
-        self.sum_of_forces = numpy.array([[0.], [0.], [0.]])
+            if abs_energy_difference >= .1:
+                change_in_velocity = ((2.*abs_energy_difference)/self.mass)**(.5)
+
+                gravity_direction = gravitational_acceleration/numpy.linalg.norm(gravitational_acceleration)
+
+                if energy_difference < 0.:
+                    change_in_velocity *= -1.
+
+                print("%r change_in_velocity: %r") % (self, change_in_velocity)
+                self.velocity = change_in_velocity * gravity_direction + self.velocity
+                print("%r true_ending_energy: %r") % (self, calculate_total_energy())
+
 
 
 def move_all_movable_objects():
