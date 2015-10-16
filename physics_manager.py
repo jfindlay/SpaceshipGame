@@ -5,7 +5,7 @@ import numpy
 __author__ = 'Jacob'
 
 
-dt = 1/120.
+dt = 1/240.
 e = .7
 
 
@@ -161,14 +161,12 @@ class DetectAndResolveAllCollisions:
             return potentially_colliding_pairs
 
         def distance_pair_intersecting(space_object0, space_object1):
-            distance_intersecting = 0
+            distance_intersecting = -1
             if space_object0.radius != 0 or space_object1.radius != 0:
                 vector_between_centers = space_object0.position - space_object1.position
                 distance_between_centers = numpy.linalg.norm(vector_between_centers)
                 if distance_between_centers <= space_object0.radius + space_object1.radius:
                     distance_intersecting = (space_object0.radius + space_object1.radius) - distance_between_centers
-            else:
-                distance_intersecting = -1
 
             return distance_intersecting
 
@@ -226,7 +224,7 @@ class DetectAndResolveAllCollisions:
                 space_object0.velocity = e * computed_velocity_before_e
 
             elif space_object1.movable:
-                computed_velocity_before_e = -2*object1_relative_velocity + space_object0.velocity
+                computed_velocity_before_e = -2*object1_relative_velocity + space_object1.velocity
                 space_object1.velocity = e * computed_velocity_before_e
 
         current_max_distance_intersecting = 1

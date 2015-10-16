@@ -44,9 +44,9 @@ for i in range(4):
     objects_and_visual_pairs.append([new_object, new_visualization])
 
 for i in range(30000):
-    rate(100)
+    rate(120)
 
-    for j in range(1):
+    for j in range(2):
         physics_manager.go_forward_one_time_step()
 
     for set_of_objects in objects_and_visual_pairs:
