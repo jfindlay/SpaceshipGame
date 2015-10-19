@@ -26,23 +26,23 @@ def create_sphere_visual(space_object, object_color = color.white):
 
 object1 = physics_manager.SpaceObject(position = numpy.array([[0.], [0.], [0.]]), velocity = numpy.array([[0.], [0.], [0.]]),
                                      radius = 5., mass = 10., gravity_source=True)
-object2 = physics_manager.SpaceObject(position = numpy.array([[10.], [0.], [0.]]), velocity = numpy.array([[-10.], [0.], [0.]]),
+object2 = physics_manager.SpaceObject(position = numpy.array([[10.], [0.], [0.]]), velocity = numpy.array([[-50.], [0.], [0.]]),
                                      radius = 1., mass = 1.)
-object3 = physics_manager.SpaceObject(position = numpy.array([[-200.], [0.], [4.]]), velocity = numpy.array([[10.], [0.], [0.]]),
+object3 = physics_manager.SpaceObject(position = numpy.array([[-200.], [0.], [4.]]), velocity = numpy.array([[50.], [0.], [0.]]),
                                     radius = 5., mass = 5.)
-object4 = physics_manager.SpaceObject(position = numpy.array([[-160.], [1.], [0.]]), velocity = numpy.array([[10.], [0.], [0.]]),
+object4 = physics_manager.SpaceObject(position = numpy.array([[-160.], [1.], [0.]]), velocity = numpy.array([[50.], [0.], [0.]]),
                                      radius = 5., mass = 5.)
-object5 = physics_manager.SpaceObject(position = numpy.array([[-140.], [2.], [-4.]]), velocity = numpy.array([[10.], [0.], [0.]]),
+object5 = physics_manager.SpaceObject(position = numpy.array([[-140.], [2.], [-4.]]), velocity = numpy.array([[50.], [0.], [0.]]),
                                      radius = 5., mass = 5.)
-object6 = physics_manager.SpaceObject(position = numpy.array([[-120.], [3.], [2.]]), velocity = numpy.array([[10.], [0.], [0.]]),
+object6 = physics_manager.SpaceObject(position = numpy.array([[-120.], [3.], [2.]]), velocity = numpy.array([[50.], [0.], [0.]]),
                                      radius = 5., mass = 5.)
-object7 = physics_manager.SpaceObject(position = numpy.array([[-100.], [4.], [0.]]), velocity = numpy.array([[10.], [0.], [0.]]),
+object7 = physics_manager.SpaceObject(position = numpy.array([[-100.], [4.], [0.]]), velocity = numpy.array([[50.], [0.], [0.]]),
                                      radius = 5., mass = 5.)
-object8 = physics_manager.SpaceObject(position = numpy.array([[-80.], [5.], [-2.]]), velocity = numpy.array([[10.], [0.], [0.]]),
+object8 = physics_manager.SpaceObject(position = numpy.array([[-80.], [5.], [-2.]]), velocity = numpy.array([[50.], [0.], [0.]]),
                                      radius = 5., mass = 5.)
-object9 = physics_manager.SpaceObject(position = numpy.array([[-60.], [6.], [0.]]), velocity = numpy.array([[10.], [0.], [0.]]),
+object9 = physics_manager.SpaceObject(position = numpy.array([[-60.], [6.], [0.]]), velocity = numpy.array([[50.], [0.], [0.]]),
                                      radius = 5., mass = 5.)
-object10 = physics_manager.SpaceObject(position = numpy.array([[100.], [0.], [0.]]), velocity = numpy.array([[-10.], [0.], [0.]]),
+object10 = physics_manager.SpaceObject(position = numpy.array([[100.], [0.], [0.]]), velocity = numpy.array([[-50.], [0.], [0.]]),
                                      radius = 5., mass = 5.)
 
 

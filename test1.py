@@ -17,7 +17,7 @@ objects_and_visual_pairs = []
 
 for i in range(45):
     position = numpy.random.uniform(-300, 300, (3,1))
-    velocity = numpy.random.uniform(-10, 10, (3,1))
+    velocity = numpy.random.uniform(-50, 50, (3,1))
     radius = numpy.random.uniform(1, 5)
     mass = numpy.random.uniform(1, 10)
     new_object = physics_manager.SpaceObject(position, velocity, radius, mass)
@@ -34,7 +34,7 @@ for i in range(5):
     objects_and_visual_pairs.append([new_object, new_visualization])
 
 
-for i in range(4):
+for i in range(3):
     position = numpy.random.uniform(-300, 300, (3,1))
     velocity = numpy.random.uniform(0, 0, (3,1))
     radius = numpy.random.uniform(20, 50)
@@ -44,9 +44,9 @@ for i in range(4):
     objects_and_visual_pairs.append([new_object, new_visualization])
 
 for i in range(30000):
-    rate(120)
+    rate(60)
 
-    for j in range(2):
+    for j in range(4):
         physics_manager.go_forward_one_time_step()
 
     for set_of_objects in objects_and_visual_pairs:
