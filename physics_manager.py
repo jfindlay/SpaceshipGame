@@ -44,7 +44,6 @@ class SpaceObject:
         
         if self.effected_by_gravity:
             objects_effected_by_gravity.append(self)
-            
 
         collision_detector_and_resolver.add_object_to_max_and_min_lists(self)
 
@@ -75,15 +74,17 @@ class SpaceObject:
         self.colliding_with_gravity_source = False
         self.influenced_by_non_gravity_source = False
 
+
 def calculate_all_gravitational_forces(space_object):
     def calculate_gravitational_force(space_object1, space_object2):
         distance_vector = space_object1.position - space_object2.position
         distance_direction = distance_vector / numpy.linalg.norm(distance_vector)
         distance_magnitude_squared = numpy.dot(numpy.transpose(distance_vector), distance_vector)
         mass_times_mass = space_object1.mass * space_object2.mass
-        force = (mass_times_mass / distance_magnitude_squared) * distance_direction
-        return force
+        individual_force = (mass_times_mass / distance_magnitude_squared) * distance_direction
+        return individual_force
 
+    force = numpy.array([[0.], [0.], [0.]])
     for gravity_source in gravity_sources:
         force = calculate_gravitational_force(gravity_source, space_object)
 
@@ -94,9 +95,11 @@ def move_all_movable_objects():
     for space_object in movable_objects:
         space_object.move()
 
+
 def calculate_all_velocities():
     for space_object in movable_objects:
         space_object.calculate_velocity()
+
 
 class DetectAndResolveAllCollisions:
     def __init__(self):
@@ -118,8 +121,8 @@ class DetectAndResolveAllCollisions:
 
         def update_all_maxes_and_mins(objects_to_be_updated=all_objects):
 
-            def update_object_in_dimension(dimension_index, space_object):
-                dimension = self.maxes_and_mins_along_dimensions[dimension_index]
+            def update_object_in_dimension(current_dimension_index, space_object):
+                dimension = self.maxes_and_mins_along_dimensions[current_dimension_index]
 
                 updating_max = True
 
@@ -129,10 +132,10 @@ class DetectAndResolveAllCollisions:
                     if space_object == object_to_compare_against:
                         if updating_max:
                             # The additional .01 is so the collision detector will pick up objects that are just barely touching.
-                            object_number_pair[1] = space_object.position[dimension_index] + space_object.radius + .005
+                            object_number_pair[1] = space_object.position[current_dimension_index] + space_object.radius + .005
                             updating_max = False
                         else:
-                            object_number_pair[1] = space_object.position[dimension_index] - space_object.radius - .005
+                            object_number_pair[1] = space_object.position[current_dimension_index] - space_object.radius - .005
                             break
 
             for dimension_index in range(len(self.maxes_and_mins_along_dimensions)):
@@ -237,7 +240,7 @@ class DetectAndResolveAllCollisions:
                 break
 
             for pair in potentially_colliding_pairs:
-                space_object0, space_object1  = pair
+                space_object0, space_object1 = pair
 
                 distance_intersecting = distance_pair_intersecting(space_object0, space_object1)
 
