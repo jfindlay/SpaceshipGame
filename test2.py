@@ -59,10 +59,10 @@ create_sphere_visual(object10, color.orange)
 
 
 
-for i in range(30000):
+for i in xrange(30000):
     rate(100)
 
-    for j in range(1):
+    for j in xrange(1):
         physics_manager.go_forward_one_time_step()
 
     for set_of_objects in objects_and_visual_pairs:

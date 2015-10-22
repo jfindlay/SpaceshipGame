@@ -108,7 +108,7 @@ class DetectAndResolveAllCollisions:
         self.colliding_pairs = []
 
     def add_object_to_max_and_min_lists(self, object_to_be_added):
-        for dimension_index in range(len(self.maxes_and_mins_along_dimensions)):
+        for dimension_index in xrange(len(self.maxes_and_mins_along_dimensions)):
             dimension = self.maxes_and_mins_along_dimensions[dimension_index]
             # The additional .01 is so the collision detector will pick up objects that are just barely touching.
             object_max = object_to_be_added.position[dimension_index] + object_to_be_added.radius + .005
@@ -138,7 +138,7 @@ class DetectAndResolveAllCollisions:
                             object_number_pair[1] = space_object.position[current_dimension_index] - space_object.radius - .005
                             break
 
-            for dimension_index in range(len(self.maxes_and_mins_along_dimensions)):
+            for dimension_index in xrange(len(self.maxes_and_mins_along_dimensions)):
                 for space_object in objects_to_be_updated:
                     update_object_in_dimension(dimension_index, space_object)
 
