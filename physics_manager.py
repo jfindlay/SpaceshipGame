@@ -28,6 +28,7 @@ class SpaceObject:
         self.effected_by_gravity = effected_by_gravity
         self.gravity_source = gravity_source
         self.colliding_with_gravity_source = False
+        self.influenced_by_non_gravity_source = False
         self.acceleration = numpy.array([[0.], [0.], [0.]])
         self.constant_forces = numpy.array([[0.], [0.], [0.]])
 
@@ -50,38 +51,29 @@ class SpaceObject:
     def move(self):
         # Uses Velocity Verlet integration method
         self.position = self.position + self.velocity * dt + .5 * self.acceleration * dt * dt
-        print("MOVE")
-        print("acceleration: %r") % self.acceleration
-        print("velocity: %r") % self.velocity
-        print("position: %r") % self.position
 
     def calculate_velocity(self):
-        print("CALCULATE VELOCITY")
-        speed = numpy.linalg.norm(self.velocity)
-        print("speed: %r") % speed
-
+        previous_speed = numpy.linalg.norm(self.velocity)
 
         self.velocity = self.velocity + .5 * self.acceleration * dt
         self.sum_of_forces = self.constant_forces
         self.velocity = self.velocity + .5 * self.acceleration * dt
         self.sum_of_forces = self.constant_forces
-        if self.colliding_with_gravity_source and self.effected_by_gravity and speed < 1.:
-            pass
-        if self.colliding_with_gravity_source and self.effected_by_gravity and speed < 2.:
-            self.sum_of_forces = self.sum_of_forces + .5 * calculate_all_gravitational_forces(self)
-        elif self.effected_by_gravity:
+        if self.effected_by_gravity:
             self.sum_of_forces = self.sum_of_forces + calculate_all_gravitational_forces(self)
         self.acceleration = self.sum_of_forces / self.mass
 
         self.velocity = self.velocity + .5 * self.acceleration * dt
 
-        print("position: %r") % self.position
-        print("velocity %r") % self.velocity
-        print("acceleration: %r") % self.acceleration
-        print("effected_by_gravity: %r") % self.effected_by_gravity
-        print("colliding_with_gravity_source: %r") % self.colliding_with_gravity_source
+        if self.colliding_with_gravity_source and not self.influenced_by_non_gravity_source:
+            speed = numpy.linalg.norm(self.velocity)
+            effective_speed = speed * (e + .1)
+            if previous_speed < effective_speed:
+                self.acceleration = numpy.array([[0.], [0.], [0.]])
+                self.velocity = numpy.array([[0.], [0.], [0.]])
 
         self.colliding_with_gravity_source = False
+        self.influenced_by_non_gravity_source = False
 
 def calculate_all_gravitational_forces(space_object):
     def calculate_gravitational_force(space_object1, space_object2):
@@ -111,7 +103,6 @@ class DetectAndResolveAllCollisions:
         # Used for the grid collision detection method. Keeps track of how far along each dimension each object stretches.
         self.maxes_and_mins_along_dimensions = ([], [], [])
         self.colliding_pairs = []
-        self.i = 0 ###############################
 
     def add_object_to_max_and_min_lists(self, object_to_be_added):
         for dimension_index in range(len(self.maxes_and_mins_along_dimensions)):
@@ -195,8 +186,6 @@ class DetectAndResolveAllCollisions:
                 distance_between_centers = numpy.linalg.norm(vector_between_centers)
                 if distance_between_centers <= space_object0.radius + space_object1.radius:
                     distance_intersecting = (space_object0.radius + space_object1.radius) - distance_between_centers
-            print("COLLISION DETECTION")
-            print("distance_intersecting %r ") % distance_intersecting
             return distance_intersecting
 
         def move_colliding_pair_back(space_object0, space_object1):
@@ -204,17 +193,11 @@ class DetectAndResolveAllCollisions:
             # so they are just barely touching, aka
             # radius + radius = magnitude(difference in positions + difference in velocity * time)
             # and we are solving for time.
-            print("MOVE BACK")
 
             space_object0_velocity = space_object0.velocity
             space_object1_velocity = space_object1.velocity
-            print("space_object0.velocity %r") % space_object0.velocity
-            print("space_object1.velocity %r") % space_object1.velocity
 
             vector_between_centers = space_object0.position - space_object1.position
-
-            print("space_object0.position 1 %r") % space_object0.position
-            print("space_object1.position 1 %r") % space_object1.position
 
             if space_object0.movable and not space_object1.movable:
                 space_object1_velocity = numpy.array([[0.], [0.], [0.]])
@@ -224,9 +207,6 @@ class DetectAndResolveAllCollisions:
                 space_object0_velocity = numpy.array([[0.], [0.], [0.]])
                 if numpy.array_equal(space_object1_velocity, numpy.array([[0.], [0.], [0.]])):
                     space_object1_velocity = vector_between_centers
-
-            print("space_object0_velocity %r") % space_object0_velocity
-            print("space_object1_velocity %r") % space_object1_velocity
 
             vector_velocity_difference = space_object0_velocity - space_object1_velocity
 
@@ -243,9 +223,6 @@ class DetectAndResolveAllCollisions:
                 space_object0.position = space_object0.position + (time * space_object0_velocity)
                 space_object1.position = space_object1.position + (time * space_object1_velocity)
                 update_all_maxes_and_mins([space_object0, space_object1])
-
-            print("space_object0.position 2 %r") % space_object0.position
-            print("space_object1.position 2 %r") % space_object1.position
 
         current_max_distance_intersecting = 1
 
@@ -270,12 +247,14 @@ class DetectAndResolveAllCollisions:
                 if distance_intersecting >= .01:
                     move_colliding_pair_back(space_object0, space_object1)
                 elif distance_intersecting >= -.001:
-                    self.i += 1
-                    print("???????: %r") % self.i
                     if space_object0.gravity_source:
                         space_object1.colliding_with_gravity_source = True
+                    else:
+                        space_object1.influenced_by_non_gravity_source = True
                     if space_object1.gravity_source:
                         space_object0.colliding_with_gravity_source = True
+                    else:
+                        space_object0.influenced_by_non_gravity_source = True
 
                     self.colliding_pairs.append((space_object0, space_object1))
 
@@ -316,7 +295,6 @@ collision_detector_and_resolver = DetectAndResolveAllCollisions()
 
 
 def go_forward_one_time_step():
-    print("!!!!!!!!!!!!!!!!!!!!!!!!!!!")
     move_all_movable_objects()
     collision_detector_and_resolver.detect_all_collisions()
     calculate_all_velocities()
