@@ -16,10 +16,10 @@ def create_sphere_visual(space_object, object_color = color.white, radius = 1):
 objects_and_visual_pairs = []
 
 for i in range(1):
-    position = numpy.array([[50.], [50.], [0.]])
-    velocity = numpy.array([[-10.], [0.], [0.]])
-    radius = 1
-    mass = 10
+    position = numpy.array([[25.], [25.], [0.]])
+    velocity = numpy.array([[0.], [0.], [0.]])
+    radius = 1.
+    mass = 10.
     new_object = physics_manager.SpaceObject(position, velocity, radius, mass)
     new_visualization = create_sphere_visual(new_object, color.white, radius)
     objects_and_visual_pairs.append([new_object, new_visualization])
@@ -37,7 +37,7 @@ for i in range(0):
 for i in range(1):
     position = numpy.array([[0.], [0.], [0.]])
     velocity = numpy.array([[0.], [0.], [0.]])
-    radius = 5
+    radius = 10.
     mass = radius*2500.
     new_object = physics_manager.SpaceObject(position, velocity, radius, mass, gravity_source=True)
     new_visualization = create_sphere_visual(new_object, color.cyan, radius)
