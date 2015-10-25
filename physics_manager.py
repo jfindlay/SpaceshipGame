@@ -14,7 +14,7 @@ e = .7
 
 all_objects = []
 movable_objects = []
-objects_effected_by_gravity = []
+objects_affected_by_gravity = []
 gravity_sources = []
 
 
@@ -23,7 +23,7 @@ class SpaceObject(object):
     Model objects
     '''
     def __init__(self, position, velocity, radius=0., mass=1.,
-                 movable=True, effected_by_gravity=True, gravity_source=False):
+                 movable=True, affected_by_gravity=True, gravity_source=False):
         '''
         Set object parameters and register object with collision detector
         '''
@@ -34,7 +34,7 @@ class SpaceObject(object):
         self.radius = numpy.abs(radius)
         self.mass = mass
         self.movable = movable
-        self.effected_by_gravity = effected_by_gravity
+        self.affected_by_gravity = affected_by_gravity
         self.gravity_source = gravity_source
         self.colliding_with_gravity_source = False
         self.influenced_by_non_gravity_source = False
@@ -45,14 +45,14 @@ class SpaceObject(object):
 
         if self.gravity_source:
             self.movable = False
-            self.effected_by_gravity = False
+            self.affected_by_gravity = False
             gravity_sources.append(self)
 
         if self.movable:
             movable_objects.append(self)
         
-        if self.effected_by_gravity:
-            objects_effected_by_gravity.append(self)
+        if self.affected_by_gravity:
+            objects_affected_by_gravity.append(self)
 
         collision_detector_and_resolver.add_object_to_max_and_min_lists(self)
 
@@ -73,7 +73,7 @@ class SpaceObject(object):
         self.sum_of_forces = self.constant_forces
         self.velocity = self.velocity + .5 * self.acceleration * dt
         self.sum_of_forces = self.constant_forces
-        if self.effected_by_gravity:
+        if self.affected_by_gravity:
             self.sum_of_forces = self.sum_of_forces + calculate_all_gravitational_forces(self)
         self.acceleration = self.sum_of_forces / self.mass
 
