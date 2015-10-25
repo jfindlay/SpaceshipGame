@@ -5,8 +5,8 @@ import numpy
 __author__ = 'Jacob'
 
 
-dt = 1/60.
-e = .7
+dt = 1/60.  # time step
+e = .7      # coefficient of restitution
 
 
 all_objects = []
