@@ -262,37 +262,11 @@ class DetectAndResolveAllCollisions:
                     self.colliding_pairs.append((space_object0, space_object1))
 
     def resolve_all_collisions(self):
-        def apply_impulse(space_object0, space_object1):
-
-            contact_normal_not_unit = space_object0.position - space_object1.position
-            contact_normal = contact_normal_not_unit / numpy.linalg.norm(contact_normal_not_unit)
-            object0_relative_velocity = numpy.dot(numpy.transpose(space_object0.velocity), contact_normal) * contact_normal
-            object1_relative_velocity = numpy.dot(numpy.transpose(space_object1.velocity), contact_normal) * contact_normal
-
-            vector_velocity_difference = object0_relative_velocity - object1_relative_velocity
-
-            if numpy.dot(numpy.transpose(vector_velocity_difference), contact_normal) >= 0:
-                pass
-
-            elif space_object0.movable and space_object1.movable:
-
-                impulse = (1 + e) * vector_velocity_difference * ((space_object0.mass * space_object1.mass) / (space_object0.mass + space_object1.mass))
-
-                space_object0.velocity -= impulse/space_object0.mass
-                space_object1.velocity += impulse/space_object1.mass
-
-            elif space_object0.movable:
-                computed_velocity_before_e = -2*object0_relative_velocity + space_object0.velocity
-                space_object0.velocity = e * computed_velocity_before_e
-
-            elif space_object1.movable:
-                computed_velocity_before_e = -2*object1_relative_velocity + space_object1.velocity
-                space_object1.velocity = e * computed_velocity_before_e
-
+        colliding_objects = {}
         for pair in self.colliding_pairs:
             space_object0, space_object1 = pair
-            apply_impulse(space_object0, space_object1)
-            self.colliding_pairs = []
+            colliding_objects.add(space_object0)
+            colliding_objects.add(space_object1)
 
 collision_detector_and_resolver = DetectAndResolveAllCollisions()
 
