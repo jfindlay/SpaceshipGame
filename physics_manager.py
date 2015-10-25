@@ -1,3 +1,6 @@
+'''
+Physics manager: implements game physics
+'''
 from operator import itemgetter
 import numpy
 
@@ -16,8 +19,14 @@ gravity_sources = []
 
 
 class SpaceObject(object):
+    '''
+    Model objects
+    '''
     def __init__(self, position, velocity, radius=0., mass=1.,
                  movable=True, effected_by_gravity=True, gravity_source=False):
+        '''
+        Set object parameters and register object with collision detector
+        '''
 
         self.position = position
         self.velocity = velocity
@@ -48,10 +57,16 @@ class SpaceObject(object):
         collision_detector_and_resolver.add_object_to_max_and_min_lists(self)
 
     def move(self):
+        '''
+        Move the object
+        '''
         # Uses Velocity Verlet integration method
         self.position = self.position + self.velocity * dt + .5 * self.acceleration * dt * dt
 
     def calculate_velocity(self):
+        '''
+        Calculate object velocity
+        '''
         previous_speed = numpy.linalg.norm(self.velocity)
 
         self.velocity = self.velocity + .5 * self.acceleration * dt
@@ -76,7 +91,13 @@ class SpaceObject(object):
 
 
 def calculate_all_gravitational_forces(space_object):
+    '''
+    Calculate all gravitational forces
+    '''
     def calculate_gravitational_force(space_object1, space_object2):
+        '''
+        Calculate gravitational force between two objects
+        '''
         distance_vector = space_object1.position - space_object2.position
         distance_direction = distance_vector / numpy.linalg.norm(distance_vector)
         distance_magnitude_squared = numpy.dot(numpy.transpose(distance_vector), distance_vector)
@@ -92,22 +113,37 @@ def calculate_all_gravitational_forces(space_object):
 
 
 def move_all_movable_objects():
+    '''
+    Move the objects
+    '''
     for space_object in movable_objects:
         space_object.move()
 
 
 def calculate_all_velocities():
+    '''
+    calculate all velocities
+    '''
     for space_object in movable_objects:
         space_object.calculate_velocity()
 
 
 class DetectAndResolveAllCollisions(object):
+    '''
+    Collision detection and resolution
+    '''
     def __init__(self):
+        '''
+        Setup collision parameter lists
+        '''
         # Used for the grid collision detection method. Keeps track of how far along each dimension each object stretches.
         self.maxes_and_mins_along_dimensions = ([], [], [])
         self.colliding_pairs = []
 
     def add_object_to_max_and_min_lists(self, object_to_be_added):
+        '''
+        Add object to max and min lists
+        '''
         for dimension_index in xrange(len(self.maxes_and_mins_along_dimensions)):
             dimension = self.maxes_and_mins_along_dimensions[dimension_index]
             # The additional .01 is so the collision detector will pick up objects that are just barely touching.
@@ -118,10 +154,17 @@ class DetectAndResolveAllCollisions(object):
             dimension.sort(key=itemgetter(1))
 
     def detect_all_collisions(self):
-
+        '''
+        Detect collisions
+        '''
         def update_all_maxes_and_mins(objects_to_be_updated=all_objects):
-
+            '''
+            Recalculate maxes and mins
+            '''
             def update_object_in_dimension(current_dimension_index, space_object):
+                '''
+                Recalculate object extent
+                '''
                 dimension = self.maxes_and_mins_along_dimensions[current_dimension_index]
 
                 updating_max = True
@@ -146,8 +189,13 @@ class DetectAndResolveAllCollisions(object):
                 self.maxes_and_mins_along_dimensions[dimension_index].sort(key=itemgetter(1))
 
         def collision_detection_grid_method():
-
+            '''
+            Detect collisions on the grid
+            '''
             def checking_single_dimension(dimension):
+                '''
+                Detect collisions in a dimension
+                '''
                 potentially_colliding_pairs_in_one_dimension = []
                 current_set_of_potentially_colliding_objects = set()
 
@@ -183,6 +231,9 @@ class DetectAndResolveAllCollisions(object):
             return potentially_colliding_pairs
 
         def distance_pair_intersecting(space_object0, space_object1):
+            '''
+            Calculate magnitude of collision (intersection)
+            '''
             distance_intersecting = -1
             if space_object0.radius != 0 or space_object1.radius != 0:
                 vector_between_centers = space_object0.position - space_object1.position
@@ -192,6 +243,9 @@ class DetectAndResolveAllCollisions(object):
             return distance_intersecting
 
         def move_colliding_pair_back(space_object0, space_object1):
+            '''
+            Reconcile collision
+            '''
             # Uses the quadratic formula to find the amount of time needed to move the objects back
             # so they are just barely touching, aka
             # radius + radius = magnitude(difference in positions + difference in velocity * time)
@@ -262,8 +316,13 @@ class DetectAndResolveAllCollisions(object):
                     self.colliding_pairs.append((space_object0, space_object1))
 
     def resolve_all_collisions(self):
+        '''
+        Resolve all collisions
+        '''
         def apply_impulse(space_object0, space_object1):
-
+            '''
+            Apply impulse to colling objects
+            '''
             contact_normal_not_unit = space_object0.position - space_object1.position
             contact_normal = contact_normal_not_unit / numpy.linalg.norm(contact_normal_not_unit)
             object0_relative_velocity = numpy.dot(numpy.transpose(space_object0.velocity), contact_normal) * contact_normal
@@ -298,6 +357,9 @@ collision_detector_and_resolver = DetectAndResolveAllCollisions()
 
 
 def go_forward_one_time_step():
+    '''
+    Iterate the clock
+    '''
     move_all_movable_objects()
     collision_detector_and_resolver.detect_all_collisions()
     calculate_all_velocities()
