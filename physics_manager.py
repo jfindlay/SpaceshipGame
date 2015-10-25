@@ -149,14 +149,14 @@ class DetectAndResolveAllCollisions:
 
             def checking_single_dimension(dimension):
                 potentially_colliding_pairs_in_one_dimension = []
-                current_list_of_potentially_colliding_objects = []
+                current_set_of_potentially_colliding_objects = set()
 
                 for object_number_pair in dimension:
                     space_object = object_number_pair[0]
 
-                    if space_object in current_list_of_potentially_colliding_objects:
-                        current_list_of_potentially_colliding_objects.remove(space_object)
-                        for potentially_colliding_object in current_list_of_potentially_colliding_objects:
+                    if space_object in current_set_of_potentially_colliding_objects:
+                        current_set_of_potentially_colliding_objects.remove(space_object)
+                        for potentially_colliding_object in current_set_of_potentially_colliding_objects:
                             # To make sure the objects in the pairs are in the same order every time they are listed
                             # as potentially colliding:
                             if space_object > potentially_colliding_object:
@@ -164,7 +164,7 @@ class DetectAndResolveAllCollisions:
                             else:
                                 potentially_colliding_pairs_in_one_dimension.append((potentially_colliding_object, space_object))
                     else:
-                        current_list_of_potentially_colliding_objects.append(space_object)
+                        current_set_of_potentially_colliding_objects.add(space_object)
 
                 return potentially_colliding_pairs_in_one_dimension
 
