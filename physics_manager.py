@@ -15,7 +15,7 @@ objects_effected_by_gravity = []
 gravity_sources = []
 
 
-class SpaceObject:
+class SpaceObject(object):
     def __init__(self, position, velocity, radius=0., mass=1.,
                  movable=True, effected_by_gravity=True, gravity_source=False):
 
@@ -101,7 +101,7 @@ def calculate_all_velocities():
         space_object.calculate_velocity()
 
 
-class DetectAndResolveAllCollisions:
+class DetectAndResolveAllCollisions(object):
     def __init__(self):
         # Used for the grid collision detection method. Keeps track of how far along each dimension each object stretches.
         self.maxes_and_mins_along_dimensions = ([], [], [])
