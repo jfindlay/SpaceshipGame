@@ -37,13 +37,12 @@ class SpaceObject(object):
         self.acceleration = numpy.array([[0.], [0.], [0.]])
         self.constant_forces = numpy.array([[0.], [0.], [0.]])
 
-        manager.objects.append(self)
+        manager._register_object(self)
 
         if self.gravity_source:
             self.movable = False
             self.affected_by_gravity = False
 
-        collision_detector_and_resolver.add_object_to_max_and_min_lists(self)
 
     def move(self):
         '''
@@ -63,7 +62,7 @@ class SpaceObject(object):
         self.velocity = self.velocity + .5 * self.acceleration * dt
         self.sum_of_forces = self.constant_forces
         if self.affected_by_gravity:
-            self.sum_of_forces = self.sum_of_forces + calculate_all_gravitational_forces(self)
+            self.sum_of_forces = self.sum_of_forces + gravity_force(self)
         self.acceleration = self.sum_of_forces / self.mass
 
         self.velocity = self.velocity + .5 * self.acceleration * dt
@@ -79,47 +78,7 @@ class SpaceObject(object):
         self.influenced_by_non_gravity_source = False
 
 
-def calculate_all_gravitational_forces(space_object):
-    '''
-    Calculate all gravitational forces
-    '''
-    def calculate_gravitational_force(space_object1, space_object2):
-        '''
-        Calculate gravitational force between two objects
-        '''
-        distance_vector = space_object1.position - space_object2.position
-        distance_direction = distance_vector / numpy.linalg.norm(distance_vector)
-        distance_magnitude_squared = numpy.dot(numpy.transpose(distance_vector), distance_vector)
-        mass_times_mass = space_object1.mass * space_object2.mass
-        individual_force = (mass_times_mass / distance_magnitude_squared) * distance_direction
-        return individual_force
-
-    force = numpy.array([[0.], [0.], [0.]])
-    for gravity_object in manager.objects:
-        if gravity_object.gravity_source:
-            force = calculate_gravitational_force(gravity_object, space_object)
-
-    return force
-
-
-def move_all_movable_objects():
-    '''
-    Move the objects
-    '''
-    for space_object in manager.objects:
-        if space_object.movable:
-            space_object.move()
-
-
-def calculate_all_velocities():
-    '''
-    calculate all velocities
-    '''
-    for space_object in manager.objects:
-        space_object.calculate_velocity()
-
-
-class DetectAndResolveAllCollisions(object):
+class Collisions(object):
     '''
     Collision detection and resolution
     '''
@@ -131,17 +90,17 @@ class DetectAndResolveAllCollisions(object):
         self.maxes_and_mins_along_dimensions = ([], [], [])
         self.colliding_pairs = []
 
-    def add_object_to_max_and_min_lists(self, object_to_be_added):
+    def register_object(self, space_object):
         '''
         Add object to max and min lists
         '''
         for dimension_index in xrange(len(self.maxes_and_mins_along_dimensions)):
             dimension = self.maxes_and_mins_along_dimensions[dimension_index]
             # The additional .01 is so the collision detector will pick up objects that are just barely touching.
-            object_max = object_to_be_added.position[dimension_index] + object_to_be_added.radius + .005
-            object_min = object_to_be_added.position[dimension_index] - object_to_be_added.radius - .005
-            dimension.append([object_to_be_added, object_max])
-            dimension.append([object_to_be_added, object_min])
+            object_max = space_object.position[dimension_index] + space_object.radius + .005
+            object_min = space_object.position[dimension_index] - space_object.radius - .005
+            dimension.append([space_object, object_max])
+            dimension.append([space_object, object_min])
             dimension.sort(key=itemgetter(1))
 
     def detect_all_collisions(self):
@@ -344,8 +303,6 @@ class DetectAndResolveAllCollisions(object):
             apply_impulse(space_object0, space_object1)
             self.colliding_pairs = []
 
-collision_detector_and_resolver = DetectAndResolveAllCollisions()
-
 
 class Manager(object):
     '''
@@ -355,15 +312,61 @@ class Manager(object):
         '''
         Setup list of all physical objects
         '''
+        self.collisions = Collisions()
         self.objects = []
+
+    def _register_object(self, space_object):
+        '''
+        Register an object with the physics manager.  This is done internally
+        by the object itself
+        '''
+        self.objects.append(space_object)
+        self.collisions.register(space_object)
 
     def time_step(self):
         '''
         Iterate the clock
         '''
-        move_all_movable_objects()
-        collision_detector_and_resolver.detect_all_collisions()
-        calculate_all_velocities()
-        collision_detector_and_resolver.resolve_all_collisions()
+        self.move_objects()
+        self.collisions.detect_all_collisions()
+        self.calculate_velocities()
+        self.collisions.resolve_all_collisions()
+
+    def gravity_force(self, space_object):
+        '''
+        Calculate all gravitational forces
+        '''
+        def calculate_force(space_object1, space_object2):
+            '''
+            Calculate gravitational force between two objects
+            '''
+            distance_vector = space_object1.position - space_object2.position
+            distance_direction = distance_vector / numpy.linalg.norm(distance_vector)
+            distance_magnitude_squared = numpy.dot(numpy.transpose(distance_vector), distance_vector)
+            mass_times_mass = space_object1.mass * space_object2.mass
+            individual_force = (mass_times_mass / distance_magnitude_squared) * distance_direction
+            return individual_force
+
+        force = numpy.array([[0.], [0.], [0.]])
+        for gravity_object in self.objects:
+            if gravity_object.gravity_source:
+                force = calculate_gravitational_force(gravity_object, space_object)
+
+        return force
+
+    def move_objects(self):
+        '''
+        Move the objects
+        '''
+        for space_object in self.objects:
+            if space_object.movable:
+                space_object.move()
+
+    def calculate_velocities(self):
+        '''
+        calculate all velocities
+        '''
+        for space_object in self.objects:
+            space_object.calculate_velocity()
 
 manager = Manager()
