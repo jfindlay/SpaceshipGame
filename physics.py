@@ -8,14 +8,9 @@ import numpy
 __author__ = 'Jacob'
 
 
+# universal physical constants
 dt = 1/60.
 e = .7
-
-
-all_objects = []
-movable_objects = []
-objects_affected_by_gravity = []
-gravity_sources = []
 
 
 class SpaceObject(object):
@@ -25,7 +20,8 @@ class SpaceObject(object):
     def __init__(self, position, velocity, radius=0., mass=1.,
                  movable=True, affected_by_gravity=True, gravity_source=False):
         '''
-        Set object parameters and register object with collision detector
+        Set object parameters and register object with physics and collision
+        managers
         '''
 
         self.position = position
@@ -41,18 +37,11 @@ class SpaceObject(object):
         self.acceleration = numpy.array([[0.], [0.], [0.]])
         self.constant_forces = numpy.array([[0.], [0.], [0.]])
 
-        all_objects.append(self)
+        manager.objects.append(self)
 
         if self.gravity_source:
             self.movable = False
             self.affected_by_gravity = False
-            gravity_sources.append(self)
-
-        if self.movable:
-            movable_objects.append(self)
-        
-        if self.affected_by_gravity:
-            objects_affected_by_gravity.append(self)
 
         collision_detector_and_resolver.add_object_to_max_and_min_lists(self)
 
@@ -106,8 +95,9 @@ def calculate_all_gravitational_forces(space_object):
         return individual_force
 
     force = numpy.array([[0.], [0.], [0.]])
-    for gravity_source in gravity_sources:
-        force = calculate_gravitational_force(gravity_source, space_object)
+    for gravity_object in manager.objects:
+        if gravity_object.gravity_source:
+            force = calculate_gravitational_force(gravity_object, space_object)
 
     return force
 
@@ -116,15 +106,16 @@ def move_all_movable_objects():
     '''
     Move the objects
     '''
-    for space_object in movable_objects:
-        space_object.move()
+    for space_object in manager.objects:
+        if space_object.movable:
+            space_object.move()
 
 
 def calculate_all_velocities():
     '''
     calculate all velocities
     '''
-    for space_object in movable_objects:
+    for space_object in manager.objects:
         space_object.calculate_velocity()
 
 
@@ -356,11 +347,23 @@ class DetectAndResolveAllCollisions(object):
 collision_detector_and_resolver = DetectAndResolveAllCollisions()
 
 
-def go_forward_one_time_step():
+class Manager(object):
     '''
-    Iterate the clock
+    Manage game physics
     '''
-    move_all_movable_objects()
-    collision_detector_and_resolver.detect_all_collisions()
-    calculate_all_velocities()
-    collision_detector_and_resolver.resolve_all_collisions()
+    def __init__(self):
+        '''
+        Setup list of all physical objects
+        '''
+        self.objects = []
+
+    def time_step(self):
+        '''
+        Iterate the clock
+        '''
+        move_all_movable_objects()
+        collision_detector_and_resolver.detect_all_collisions()
+        calculate_all_velocities()
+        collision_detector_and_resolver.resolve_all_collisions()
+
+manager = Manager()
