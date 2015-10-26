@@ -43,7 +43,6 @@ class Object(object):
             self.movable = False
             self.affected_by_gravity = False
 
-
     def move(self):
         '''
         Move the object
@@ -340,7 +339,7 @@ class Manager(object):
 
     def gravity_force(self, o):
         '''
-        Calculate all gravitational forces
+        Calculate all gravitational forces on o
         '''
         def calculate_force(o_1, o_2):
             '''
@@ -356,7 +355,7 @@ class Manager(object):
         force = numpy.array([[0.], [0.], [0.]])
         for gravity_object in self.objects:
             if gravity_object.gravity_source:
-                force = calculate_gravitational_force(gravity_object, o)
+                force += calculate_gravitational_force(gravity_object, o)
 
         return force
 
@@ -373,6 +372,7 @@ class Manager(object):
         calculate all velocities
         '''
         for o in self.objects:
-            o.calculate_velocity()
+            if o.movable:
+                o.calculate_velocity()
 
 manager = Manager()
