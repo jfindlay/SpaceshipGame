@@ -13,7 +13,7 @@ dt = 1/60.
 e = .7
 
 
-class SpaceObject(object):
+class Object(object):
     '''
     Model objects
     '''
@@ -88,224 +88,225 @@ class Collisions(object):
         Setup collision parameter lists
         '''
         # Used for the grid collision detection method. Keeps track of how far
-        # along each dimension each object stretches.
-        self.maxes_and_mins_along_dimensions = ([], [], [])
+        # along each dimension each object extends.
+        self.extrema = ([], [], [])
         self.colliding_pairs = []
+        self.tolerance = 0.005
+        self.gross_intersect = 0.01
+        self.fine_intersect = 0.001
 
-    def register_object(self, space_object):
+    def register_object(self, o):
         '''
         Add object to max and min lists
         '''
-        for dimension_index in xrange(len(self.maxes_and_mins_along_dimensions)):
-            dimension = self.maxes_and_mins_along_dimensions[dimension_index]
+        for index, dimension in enumerate(self.extrema):
             # The additional .01 is so the collision detector will pick up
             # objects that are just barely touching.
-            object_max = space_object.position[dimension_index] + space_object.radius + .005
-            object_min = space_object.position[dimension_index] - space_object.radius - .005
-            dimension.append([space_object, object_max])
-            dimension.append([space_object, object_min])
+            object_max = o.position[index] + o.radius + self.tolerance
+            object_min = o.position[index] - o.radius - self.tolerance
+            dimension.append([o, object_max])
+            dimension.append([o, object_min])
             dimension.sort(key=itemgetter(1))
 
-    def detect(self):
+    def detect(self, objects):
         '''
         Detect collisions
         '''
-        def update_extrema(objects_to_be_updated=all_objects):
+        def update_extrema(objects=objects):
             '''
-            Recalculate maxes and mins
+            Recalculate object extents
             '''
-            def update_object_in_dimension(current_dimension_index, space_object):
+            def update_object_in_dimension(index, o):
                 '''
                 Recalculate object extent
                 '''
-                dimension = self.maxes_and_mins_along_dimensions[current_dimension_index]
-
+                dimension = self.extrema[index]
                 updating_max = True
 
-                for object_number_pair in dimension:
-                    object_to_compare_against = object_number_pair[0]
-
-                    if space_object == object_to_compare_against:
+                for object_pair in dimension:
+                    if o == object_pair[0]:
                         if updating_max:
-                            # The additional .01 is so the collision detector will pick up objects that are just barely touching.
-                            object_number_pair[1] = space_object.position[current_dimension_index] + space_object.radius + .005
+                            # The additional tolerance is so the collision
+                            # detector will pick up objects that are just
+                            # barely touching.
+                            object_pair[1] = o.position[index] + o.radius + self.tolerance
                             updating_max = False
                         else:
-                            object_number_pair[1] = space_object.position[current_dimension_index] - space_object.radius - .005
+                            object_pair[1] = o.position[index] - o.radius - self.tolerance
                             break
 
-            for dimension_index in xrange(len(self.maxes_and_mins_along_dimensions)):
-                for space_object in objects_to_be_updated:
-                    update_object_in_dimension(dimension_index, space_object)
+            for index, dimension in enumerate(self.extrema):
+                for o in objects:
+                    update_object_in_dimension(index, o)
 
                 # Sorts the dimension based on the max and min values.
-                self.maxes_and_mins_along_dimensions[dimension_index].sort(key=itemgetter(1))
+                self.extrema[index].sort(key=itemgetter(1))
 
         def grid_method():
             '''
             Detect collisions on the grid
             '''
-            def checking_single_dimension(dimension):
+            def check_dimension(dimension):
                 '''
                 Detect collisions in a dimension
                 '''
-                potentially_colliding_pairs_in_one_dimension = []
-                current_set_of_potentially_colliding_objects = set()
+                potential_1d_collisions = []
+                potential_collisions = set()
 
                 for object_number_pair in dimension:
-                    space_object = object_number_pair[0]
+                    o = object_number_pair[0]
 
-                    if space_object in current_set_of_potentially_colliding_objects:
-                        current_set_of_potentially_colliding_objects.remove(space_object)
-                        for potentially_colliding_object in current_set_of_potentially_colliding_objects:
-                            # To make sure the objects in the pairs are in the same order every time they are listed
-                            # as potentially colliding:
-                            if space_object > potentially_colliding_object:
-                                potentially_colliding_pairs_in_one_dimension.append((space_object, potentially_colliding_object))
+                    if o in potential_collisions:
+                        potential_collisions.remove(o)
+                        for potentially_colliding_object in potential_collisions:
+                            # To make sure the objects in the pairs are in the
+                            # same order every time they are listed as
+                            # potentially colliding:
+                            if o > potentially_colliding_object:
+                                potential_1d_collisions.append((o, potentially_colliding_object))
                             else:
-                                potentially_colliding_pairs_in_one_dimension.append((potentially_colliding_object, space_object))
+                                potential_1d_collisions.append((potentially_colliding_object, o))
                     else:
-                        current_set_of_potentially_colliding_objects.add(space_object)
+                        potential_collisions.add(o)
 
-                return potentially_colliding_pairs_in_one_dimension
+                return potential_1d_collisions
 
-            potentially_colliding_pairs_in_0_dimension = checking_single_dimension(self.maxes_and_mins_along_dimensions[0])
-            potentially_colliding_pairs_in_1_dimension = checking_single_dimension(self.maxes_and_mins_along_dimensions[1])
-            potentially_colliding_pairs_in_2_dimension = checking_single_dimension(self.maxes_and_mins_along_dimensions[2])
+            potential_x_collisions = check_dimension(self.extrema[0])
+            potential_y_collisions = check_dimension(self.extrema[1])
+            potential_z_collisions = check_dimension(self.extrema[2])
 
-            potentially_colliding_pairs = []
+            potential_collisions = []
 
-            for potentially_colliding_pair in potentially_colliding_pairs_in_0_dimension:
-                if (potentially_colliding_pair in potentially_colliding_pairs_in_1_dimension and
-                        potentially_colliding_pair in potentially_colliding_pairs_in_2_dimension):
+            for potential_x_collision in potential_x_collisions:
+                if (potential_x_collision in potential_y_collisions and
+                        potential_x_collision in potential_z_collisions):
 
-                    potentially_colliding_pairs.append(potentially_colliding_pair)
+                    potential_collisions.append(potentially_colliding_pair)
 
-            return potentially_colliding_pairs
+            return potential_collisions
 
-        def intersection(space_object0, space_object1):
+        def intersecting(o_1, o_2):
             '''
             Calculate magnitude of collision (intersection)
             '''
-            distance_intersecting = -1
-            if space_object0.radius != 0 or space_object1.radius != 0:
-                vector_between_centers = space_object0.position - space_object1.position
-                distance_between_centers = numpy.linalg.norm(vector_between_centers)
-                if distance_between_centers <= space_object0.radius + space_object1.radius:
-                    distance_intersecting = (space_object0.radius + space_object1.radius) - distance_between_centers
-            return distance_intersecting
+            intersection = -1
+            if o_1.radius != 0 or o_2.radius != 0:
+                distance_between_centers = numpy.linalg.norm(o_1.position - o_2.position)
+                if distance_between_centers <= o_1.radius + o_2.radius:
+                    intersection = (o_1.radius + o_2.radius) - distance_between_centers
+            return intersection
 
-        def recoil(space_object0, space_object1):
+        def recoil(o_1, o_2):
             '''
             Reconcile collision
             '''
-            # Uses the quadratic formula to find the amount of time needed to move the objects back
-            # so they are just barely touching, aka
-            # radius + radius = magnitude(difference in positions + difference in velocity * time)
+            # Uses the quadratic formula to find the amount of time needed to
+            # move the objects back so they are just barely touching, aka
+            # 2*(radius) = magnitude(difference in positions + difference in velocity * time)
             # and we are solving for time.
 
-            space_object0_velocity = space_object0.velocity
-            space_object1_velocity = space_object1.velocity
+            o_1_velocity = o_1.velocity
+            o_2_velocity = o_2.velocity
 
-            vector_between_centers = space_object0.position - space_object1.position
+            vector_between_centers = o_1.position - o_2.position
 
-            if space_object0.movable and not space_object1.movable:
-                space_object1_velocity = numpy.array([[0.], [0.], [0.]])
-                if numpy.array_equal(space_object0_velocity, numpy.array([[0.], [0.], [0.]])):
-                    space_object0_velocity = -1. * vector_between_centers
-            elif space_object1.movable and not space_object0.movable:
-                space_object0_velocity = numpy.array([[0.], [0.], [0.]])
-                if numpy.array_equal(space_object1_velocity, numpy.array([[0.], [0.], [0.]])):
-                    space_object1_velocity = vector_between_centers
+            if o_1.movable and not o_2.movable:
+                o_2_velocity = numpy.array([[0.], [0.], [0.]])
+                if numpy.array_equal(o_1_velocity, numpy.array([[0.], [0.], [0.]])):
+                    o_1_velocity = -1. * vector_between_centers
+            elif o_2.movable and not o_1.movable:
+                o_1_velocity = numpy.array([[0.], [0.], [0.]])
+                if numpy.array_equal(o_2_velocity, numpy.array([[0.], [0.], [0.]])):
+                    o_2_velocity = vector_between_centers
 
-            vector_velocity_difference = space_object0_velocity - space_object1_velocity
+            velocity_difference = o_1_velocity - o_2_velocity
 
-            if not numpy.array_equal(vector_velocity_difference, numpy.array([[0.], [0.], [0.]])):
-                a = numpy.dot(numpy.transpose(vector_velocity_difference), vector_velocity_difference)
-                b = 2. * numpy.dot(numpy.transpose(vector_between_centers), vector_velocity_difference)
-                # Mathematically, it could be "+ (space_object1.radius +
-                # space_object2.radius)" instead of "-", but the "+" will lead
-                # to the time being a complex number.
-                c = numpy.dot(numpy.transpose(vector_between_centers), vector_between_centers) - (space_object0.radius + space_object1.radius)**2
+            if not numpy.array_equal(velocity_difference, numpy.array([[0.], [0.], [0.]])):
+                a = numpy.dot(numpy.transpose(velocity_difference), velocity_difference)
+                b = 2. * numpy.dot(numpy.transpose(vector_between_centers), velocity_difference)
+                # Mathematically, it could be "+ (o_2.radius + o_2.radius)"
+                # instead of "-", but the "+" will lead to the time being a
+                # complex number.
+                c = numpy.dot(numpy.transpose(vector_between_centers), vector_between_centers) - (o_1.radius + o_2.radius)**2
 
                 # The quadratic formula has a "+ or -" in it, but we always
                 # want a negative time, so we use the "-".
                 time = (-1.*b - (b**2. - 4.*a*c)**(1./2.))/(2.*a)
 
-                space_object0.position = space_object0.position + (time * space_object0_velocity)
-                space_object1.position = space_object1.position + (time * space_object1_velocity)
-                update_extrema([space_object0, space_object1])
+                o_1.position = o_1.position + (time * o_1_velocity)
+                o_2.position = o_2.position + (time * o_2_velocity)
+                update_extrema([o_1, o_2])
 
-        current_max_distance_intersecting = 1
+        max_intersect = 1
 
-        while current_max_distance_intersecting >= .01:
+        while max_intersect >= self.gross_intersect:
 
-            current_max_distance_intersecting = -1
+            max_intersect = -1
 
             update_extrema()
-            potentially_colliding_pairs = grid_method()
+            potential_collisions = grid_method()
 
-            if not potentially_colliding_pairs:
+            if not potential_collisions:
                 break
 
-            for pair in potentially_colliding_pairs:
-                space_object0, space_object1 = pair
+            for pair in potential_collisions:
+                o_1, o_2 = pair
 
-                distance_intersecting = intersection(space_object0, space_object1)
+                intersection = intersecting(o_1, o_2)
 
-                if distance_intersecting >= current_max_distance_intersecting:
-                    current_max_distance_intersecting = distance_intersecting
+                if intersection >= max_intersect:
+                    max_intersect = intersection
 
-                if distance_intersecting >= .01:
-                    recoil(space_object0, space_object1)
-                elif distance_intersecting >= -.001:
-                    if space_object0.gravity_source:
-                        space_object1.colliding_with_gravity_source = True
+                if intersection >= self.gross_intersect:
+                    recoil(o_1, o_2)
+                elif intersection >= -self.fine_intersect:
+                    if o_1.gravity_source:
+                        o_2.colliding_with_gravity_source = True
                     else:
-                        space_object1.influenced_by_non_gravity_source = True
-                    if space_object1.gravity_source:
-                        space_object0.colliding_with_gravity_source = True
+                        o_2.influenced_by_non_gravity_source = True
+                    if o_2.gravity_source:
+                        o_1.colliding_with_gravity_source = True
                     else:
-                        space_object0.influenced_by_non_gravity_source = True
+                        o_1.influenced_by_non_gravity_source = True
 
-                    self.colliding_pairs.append((space_object0, space_object1))
+                    self.colliding_pairs.append((o_1, o_2))
 
     def resolve(self):
         '''
         Resolve all collisions
         '''
-        def apply_impulse(space_object0, space_object1):
+        def apply_impulse(o_1, o_2):
             '''
             Apply impulse to colling objects
             '''
-            contact_normal_not_unit = space_object0.position - space_object1.position
+            contact_normal_not_unit = o_1.position - o_2.position
             contact_normal = contact_normal_not_unit / numpy.linalg.norm(contact_normal_not_unit)
-            object0_relative_velocity = numpy.dot(numpy.transpose(space_object0.velocity), contact_normal) * contact_normal
-            object1_relative_velocity = numpy.dot(numpy.transpose(space_object1.velocity), contact_normal) * contact_normal
+            o_0_relative_velocity = numpy.dot(numpy.transpose(o_1.velocity), contact_normal) * contact_normal
+            o_1_relative_velocity = numpy.dot(numpy.transpose(o_2.velocity), contact_normal) * contact_normal
 
-            vector_velocity_difference = object0_relative_velocity - object1_relative_velocity
+            velocity_difference = o_0_relative_velocity - o_1_relative_velocity
 
-            if numpy.dot(numpy.transpose(vector_velocity_difference), contact_normal) >= 0:
+            if numpy.dot(numpy.transpose(velocity_difference), contact_normal) >= 0:
                 pass
 
-            elif space_object0.movable and space_object1.movable:
+            elif o_1.movable and o_2.movable:
 
-                impulse = (1 + e) * vector_velocity_difference * ((space_object0.mass * space_object1.mass) / (space_object0.mass + space_object1.mass))
+                impulse = (1 + e) * velocity_difference * ((o_1.mass * o_2.mass) / (o_1.mass + o_2.mass))
 
-                space_object0.velocity -= impulse/space_object0.mass
-                space_object1.velocity += impulse/space_object1.mass
+                o_1.velocity -= impulse/o_1.mass
+                o_2.velocity += impulse/o_2.mass
 
-            elif space_object0.movable:
-                computed_velocity_before_e = -2*object0_relative_velocity + space_object0.velocity
-                space_object0.velocity = e * computed_velocity_before_e
+            elif o_1.movable:
+                computed_velocity_before_e = -2*o_0_relative_velocity + o_1.velocity
+                o_1.velocity = e * computed_velocity_before_e
 
-            elif space_object1.movable:
-                computed_velocity_before_e = -2*object1_relative_velocity + space_object1.velocity
-                space_object1.velocity = e * computed_velocity_before_e
+            elif o_2.movable:
+                computed_velocity_before_e = -2*o_1_relative_velocity + o_2.velocity
+                o_2.velocity = e * computed_velocity_before_e
 
         for pair in self.colliding_pairs:
-            space_object0, space_object1 = pair
-            apply_impulse(space_object0, space_object1)
+            o_1, o_2 = pair
+            apply_impulse(o_1, o_2)
             self.colliding_pairs = []
 
 
@@ -320,42 +321,42 @@ class Manager(object):
         self.collisions = Collisions()
         self.objects = []
 
-    def _register_object(self, space_object):
+    def _register_object(self, o):
         '''
         Register an object with the physics manager.  This is done internally
         by the object itself
         '''
-        self.objects.append(space_object)
-        self.collisions.register(space_object)
+        self.objects.append(o)
+        self.collisions.register(o)
 
     def time_step(self):
         '''
         Iterate the clock
         '''
         self.move_objects()
-        self.collisions.detect()
+        self.collisions.detect(self.objects)
         self.calculate_velocities()
         self.collisions.resolve()
 
-    def gravity_force(self, space_object):
+    def gravity_force(self, o):
         '''
         Calculate all gravitational forces
         '''
-        def calculate_force(space_object1, space_object2):
+        def calculate_force(o_1, o_2):
             '''
             Calculate gravitational force between two objects
             '''
-            distance_vector = space_object1.position - space_object2.position
+            distance_vector = o_1.position - o_2.position
             distance_direction = distance_vector / numpy.linalg.norm(distance_vector)
             distance_magnitude_squared = numpy.dot(numpy.transpose(distance_vector), distance_vector)
-            mass_times_mass = space_object1.mass * space_object2.mass
+            mass_times_mass = o_1.mass * o_2.mass
             individual_force = (mass_times_mass / distance_magnitude_squared) * distance_direction
             return individual_force
 
         force = numpy.array([[0.], [0.], [0.]])
         for gravity_object in self.objects:
             if gravity_object.gravity_source:
-                force = calculate_gravitational_force(gravity_object, space_object)
+                force = calculate_gravitational_force(gravity_object, o)
 
         return force
 
@@ -363,15 +364,15 @@ class Manager(object):
         '''
         Move the objects
         '''
-        for space_object in self.objects:
-            if space_object.movable:
-                space_object.move()
+        for o in self.objects:
+            if o.movable:
+                o.move()
 
     def calculate_velocities(self):
         '''
         calculate all velocities
         '''
-        for space_object in self.objects:
-            space_object.calculate_velocity()
+        for o in self.objects:
+            o.calculate_velocity()
 
 manager = Manager()
