@@ -1,11 +1,12 @@
 '''
 Physics manager: implements game physics
 '''
-from operator import itemgetter
-import numpy
-
 
 __author__ = 'Jacob'
+
+
+from operator import itemgetter
+import numpy
 
 
 # universal physical constants
