@@ -49,7 +49,7 @@ class SpaceObject(object):
         Move the object
         '''
         # Uses Velocity Verlet integration method
-        self.position = self.position + self.velocity * dt + .5 * self.acceleration * dt * dt
+        self.position += self.velocity * dt + .5 * self.acceleration * dt * dt
 
     def calculate_velocity(self):
         '''
@@ -57,10 +57,11 @@ class SpaceObject(object):
         '''
         previous_speed = numpy.linalg.norm(self.velocity)
 
-        self.velocity = self.velocity + .5 * self.acceleration * dt
+        # inductively calculate velocity
+        for i in range(2):
+            self.velocity += .5 * self.acceleration * dt
         self.sum_of_forces = self.constant_forces
-        self.velocity = self.velocity + .5 * self.acceleration * dt
-        self.sum_of_forces = self.constant_forces
+
         if self.affected_by_gravity:
             self.sum_of_forces = self.sum_of_forces + gravity_force(self)
         self.acceleration = self.sum_of_forces / self.mass
