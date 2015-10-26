@@ -86,7 +86,8 @@ class Collisions(object):
         '''
         Setup collision parameter lists
         '''
-        # Used for the grid collision detection method. Keeps track of how far along each dimension each object stretches.
+        # Used for the grid collision detection method. Keeps track of how far
+        # along each dimension each object stretches.
         self.maxes_and_mins_along_dimensions = ([], [], [])
         self.colliding_pairs = []
 
@@ -96,18 +97,19 @@ class Collisions(object):
         '''
         for dimension_index in xrange(len(self.maxes_and_mins_along_dimensions)):
             dimension = self.maxes_and_mins_along_dimensions[dimension_index]
-            # The additional .01 is so the collision detector will pick up objects that are just barely touching.
+            # The additional .01 is so the collision detector will pick up
+            # objects that are just barely touching.
             object_max = space_object.position[dimension_index] + space_object.radius + .005
             object_min = space_object.position[dimension_index] - space_object.radius - .005
             dimension.append([space_object, object_max])
             dimension.append([space_object, object_min])
             dimension.sort(key=itemgetter(1))
 
-    def detect_all_collisions(self):
+    def detect(self):
         '''
         Detect collisions
         '''
-        def update_all_maxes_and_mins(objects_to_be_updated=all_objects):
+        def update_extrema(objects_to_be_updated=all_objects):
             '''
             Recalculate maxes and mins
             '''
@@ -138,7 +140,7 @@ class Collisions(object):
                 # Sorts the dimension based on the max and min values.
                 self.maxes_and_mins_along_dimensions[dimension_index].sort(key=itemgetter(1))
 
-        def collision_detection_grid_method():
+        def grid_method():
             '''
             Detect collisions on the grid
             '''
@@ -180,7 +182,7 @@ class Collisions(object):
 
             return potentially_colliding_pairs
 
-        def distance_pair_intersecting(space_object0, space_object1):
+        def intersection(space_object0, space_object1):
             '''
             Calculate magnitude of collision (intersection)
             '''
@@ -192,7 +194,7 @@ class Collisions(object):
                     distance_intersecting = (space_object0.radius + space_object1.radius) - distance_between_centers
             return distance_intersecting
 
-        def move_colliding_pair_back(space_object0, space_object1):
+        def recoil(space_object0, space_object1):
             '''
             Reconcile collision
             '''
@@ -220,16 +222,18 @@ class Collisions(object):
             if not numpy.array_equal(vector_velocity_difference, numpy.array([[0.], [0.], [0.]])):
                 a = numpy.dot(numpy.transpose(vector_velocity_difference), vector_velocity_difference)
                 b = 2. * numpy.dot(numpy.transpose(vector_between_centers), vector_velocity_difference)
-                # Mathematically, it could be "+ (space_object1.radius + space_object2.radius)" instead of "-",
-                # but the "+" will lead to the time being a complex number.
+                # Mathematically, it could be "+ (space_object1.radius +
+                # space_object2.radius)" instead of "-", but the "+" will lead
+                # to the time being a complex number.
                 c = numpy.dot(numpy.transpose(vector_between_centers), vector_between_centers) - (space_object0.radius + space_object1.radius)**2
 
-                # The quadratic formula has a "+ or -" in it, but we always want a negative time, so we use the "-".
+                # The quadratic formula has a "+ or -" in it, but we always
+                # want a negative time, so we use the "-".
                 time = (-1.*b - (b**2. - 4.*a*c)**(1./2.))/(2.*a)
 
                 space_object0.position = space_object0.position + (time * space_object0_velocity)
                 space_object1.position = space_object1.position + (time * space_object1_velocity)
-                update_all_maxes_and_mins([space_object0, space_object1])
+                update_extrema([space_object0, space_object1])
 
         current_max_distance_intersecting = 1
 
@@ -237,8 +241,8 @@ class Collisions(object):
 
             current_max_distance_intersecting = -1
 
-            update_all_maxes_and_mins()
-            potentially_colliding_pairs = collision_detection_grid_method()
+            update_extrema()
+            potentially_colliding_pairs = grid_method()
 
             if not potentially_colliding_pairs:
                 break
@@ -246,13 +250,13 @@ class Collisions(object):
             for pair in potentially_colliding_pairs:
                 space_object0, space_object1 = pair
 
-                distance_intersecting = distance_pair_intersecting(space_object0, space_object1)
+                distance_intersecting = intersection(space_object0, space_object1)
 
                 if distance_intersecting >= current_max_distance_intersecting:
                     current_max_distance_intersecting = distance_intersecting
 
                 if distance_intersecting >= .01:
-                    move_colliding_pair_back(space_object0, space_object1)
+                    recoil(space_object0, space_object1)
                 elif distance_intersecting >= -.001:
                     if space_object0.gravity_source:
                         space_object1.colliding_with_gravity_source = True
@@ -265,7 +269,7 @@ class Collisions(object):
 
                     self.colliding_pairs.append((space_object0, space_object1))
 
-    def resolve_all_collisions(self):
+    def resolve(self):
         '''
         Resolve all collisions
         '''
@@ -328,9 +332,9 @@ class Manager(object):
         Iterate the clock
         '''
         self.move_objects()
-        self.collisions.detect_all_collisions()
+        self.collisions.detect()
         self.calculate_velocities()
-        self.collisions.resolve_all_collisions()
+        self.collisions.resolve()
 
     def gravity_force(self, space_object):
         '''
