@@ -304,10 +304,10 @@ class Collisions(object):
                 computed_velocity_before_e = -2*o_1_relative_velocity + o_2.velocity
                 o_2.velocity = e * computed_velocity_before_e
 
-        for pair in self.colliding_pairs:
+        while self.colliding_pairs:
+            pair = colliding_pairs.pop()
             o_1, o_2 = pair
             apply_impulse(o_1, o_2)
-            self.colliding_pairs = []
 
 
 class Manager(object):
